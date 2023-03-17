@@ -2553,7 +2553,7 @@ class DocString(object):
             )
             if len(self.docs["out"]["params"]):
                 for p in self.docs["out"]["params"]:
-                    description = sep + with_space(p[1]).strip() if p[1] else ""
+                    description = sep + (with_space(p[1]).strip() if p[1] else "")
                     raw += self.docs["out"]["spaces"] + self.dst.get_key("param", "out") + " " + p[0] + description
                     if len(p) > 2:
                         if "default" not in p[1].lower() and len(p) > 3 and p[3] is not None:
