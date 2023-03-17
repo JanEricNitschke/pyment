@@ -2539,7 +2539,7 @@ class DocString(object):
                     if len(p) > 3 and p[3] is not None:
                         raw += ", optional"
                     raw += ")"
-                description = ": " + with_space(p[1]).strip() if p[1] else ""
+                description = ": " + (with_space(p[1]).strip() if p[1] else "")
                 raw += description
                 if len(p) > 2:
                     if "default" not in p[1].lower() and len(p) > 3 and p[3] is not None:
