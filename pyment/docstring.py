@@ -2661,7 +2661,7 @@ class DocString(object):
         Returns:
             bool: Whether the read return type is None or 'None'
         """
-        return return_value is None or return_value =="None"
+        return return_value is None or return_value == "None"
 
     def _set_raw_return(self, sep):
         """Set the output raw return section.
@@ -2686,10 +2686,11 @@ class DocString(object):
                 ]
             )
             raw += self.dst.numpydoc.get_key_section_header("return", self.docs["out"]["spaces"])
+            rtype_default = "_type_"
             if self.docs["out"]["rtype"]:
                 rtype = self.docs["out"]["rtype"]
             else:
-                rtype = "_type_"
+                rtype = rtype_default
             # case of several returns
             # Here an existing docstring takes precedence over the type hint.
             # As the type hint could just be tuple[A, B, C] but the docstring
@@ -2700,7 +2701,7 @@ class DocString(object):
                     if type(ret_elem) is tuple and len(ret_elem) == 3:
                         rtype = ret_elem[2]
                         if rtype is None:
-                            rtype = ""
+                            rtype = rtype_default
                         raw += self.docs["out"]["spaces"]
                         if ret_elem[0]:
                             raw += ret_elem[0] + " : "
@@ -2720,8 +2721,8 @@ class DocString(object):
             elif isinstance(self.docs["out"]["return"], list) and self.docs["out"]["return"]:
                 ret_elem = self.docs["out"]["return"][0]
                 if type(ret_elem) is tuple and len(ret_elem) == 3:
-                    if rtype is None:
-                        rtype = ""
+                    if rtype == rtype_default:
+                        rtype = ret_elem[2]
                     raw += self.docs["out"]["spaces"]
                     if ret_elem[0]:
                         raw += ret_elem[0] + " : "
@@ -2758,7 +2759,7 @@ class DocString(object):
                     if type(ret_elem) is tuple and len(ret_elem) == 3:
                         rtype = ret_elem[2]
                         if rtype is None:
-                            rtype = ""
+                            rtype = rtype_default
                         raw += self.docs["out"]["spaces"] + spaces
                         raw += rtype + ": " + with_space(ret_elem[1]).strip() + "\n"
                     else:
