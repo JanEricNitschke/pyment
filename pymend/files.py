@@ -13,6 +13,8 @@ if sys.version_info >= (3, 11):
         # Help users on older alphas
         if not TYPE_CHECKING:
             import tomli as tomllib
+        else:
+            raise
 else:
     import tomli as tomllib
 
@@ -83,10 +85,6 @@ def parse_pyproject_toml(path_config: str) -> dict[str, Any]:
     If parsing fails, will raise a tomllib.TOMLDecodeError.
     """
     with open(path_config, "rb") as f:
-        pyproject_toml: dict[
-            str, Any
-        ] = tomllib.load(  # pyright: ignore[reportUnboundVariable]
-            f
-        )
+        pyproject_toml: dict[str, Any] = tomllib.load(f)
     config: dict[str, Any] = pyproject_toml.get("tool", {}).get("pymend", {})
     return {k.replace("--", "").replace("-", "_"): v for k, v in config.items()}
