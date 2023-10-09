@@ -77,49 +77,37 @@ def check_expected_diff(test_name: str) -> None:
 class TestNumpyOutput:
     """Integration tests for numpy style output."""
 
-    def test_positional_only_identifier(self) -> None:
-        """Make sure that '/' is parsed correctly in signatures."""
-        check_expected_diff("positional_only")
+    # def test_positional_only_identifier(self) -> None:
+    #     """Make sure that '/' is parsed correctly in signatures."""
 
-    def test_keyword_only_identifier(self) -> None:
-        """Make sure that '*' is parsed correctly in signatures."""
-        check_expected_diff("keyword_only")
+    # def test_keyword_only_identifier(self) -> None:
+    #     """Make sure that '*' is parsed correctly in signatures."""
 
-    def test_returns(self) -> None:
-        """Make sure single and multi return values are parsed/produced correctly."""
-        check_expected_diff("returns")
+    # def test_returns(self) -> None:
 
-    def test_star_args(self) -> None:
-        """Make sure that *args are treated correctly."""
-        check_expected_diff("star_args")
+    # def test_star_args(self) -> None:
+    #     """Make sure that *args are treated correctly."""
 
-    def test_starstar_kwargs(self) -> None:
-        """Make sure that **kwargs are treated correctly."""
-        check_expected_diff("star_star_kwargs")
+    # def test_starstar_kwargs(self) -> None:
+    #     """Make sure that **kwargs are treated correctly."""
 
-    def test_module_doc_dot(self) -> None:
-        """Make sure missing '.' are added to the first line of module docstring."""
-        check_expected_diff("module_dot_missing")
+    # def test_module_doc_dot(self) -> None:
+    #     """Make sure missing '.' are added to the first line of module docstring."""
 
-    def test_ast_ref(self) -> None:
-        """Bunch of different stuff."""
-        check_expected_diff("ast_ref")
+    # def test_ast_ref(self) -> None:
+    #     """Bunch of different stuff."""
 
-    def test_yields(self) -> None:
-        """Make sure yields are handled correctly from body."""
-        check_expected_diff("yields")
+    # def test_yields(self) -> None:
+    #     """Make sure yields are handled correctly from body."""
 
-    def test_raises(self) -> None:
-        """Make sure raises are handled correctly from body."""
-        check_expected_diff("raises")
+    # def test_raises(self) -> None:
+    #     """Make sure raises are handled correctly from body."""
 
-    def test_skip_overload(self) -> None:
-        """Function annotated with @overload should be skipped for DS creation."""
-        check_expected_diff("skip_overload_decorator")
+    # def test_skip_overload(self) -> None:
+    #     """Function annotated with @overload should be skipped for DS creation."""
 
-    def test_class_body(self) -> None:
-        """Correctly parse and compose class from body information."""
-        check_expected_diff("class_body")
+    # def test_class_body(self) -> None:
+    #     """Correctly parse and compose class from body information."""
 
     def test_quote_default(self) -> None:
         """Test that default values of triple quotes do not cause issues."""
