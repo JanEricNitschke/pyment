@@ -176,7 +176,6 @@ reportAssertAlwaysTrue             = "error"
 reportUnnecessaryTypeIgnoreComment = "error"
 reportImplicitOverride             = "error"
 reportShadowedImports              = "error"
-pythonVersion                      = "3.9"
 
 [tool.pylint.main]
 # Specify a score threshold under which the program will exit with error.
