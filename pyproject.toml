@@ -116,10 +116,16 @@ convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 [tool.ruff.lint.pylint]
 max-args = 10
 
-[tool.black]
-line-length    = 88
-target-version = ['py39']
-extend-exclude = '''/tests/test_pymend/refs|/doc'''
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
 
 [tool.coverage.run]
 branch = true
