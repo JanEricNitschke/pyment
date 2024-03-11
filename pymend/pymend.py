@@ -531,7 +531,7 @@ class PyComment:
         Raises
         ------
         AssertionError
-            If the input and output lines are identical but pyment reports
+            If the input and output lines are identical but pymend reports
             some elements to have changed.
         """
         if not self.fixed:
