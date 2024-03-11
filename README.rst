@@ -139,11 +139,11 @@ To see how pymend looks in action lets consider this example file `example.py`:
       def method(self, param1, param2=None) -> int:
             pass
 
-Now let's use Pyment:
+Now let's use Pymend:
 
 .. code-block:: sh
 
-        $ pyment example.py
+        $ pymend example.py
 
 This produces the following patch file `example.py.patch`:
 
@@ -216,13 +216,13 @@ This produces the following patch file `example.py.patch`:
       +        """
                pass
 
-Calling pyment directly with
+Calling pymend directly with
 
 .. code-block:: sh
 
-        $ pyment --write example.py
+        $ pymend --write example.py
 
-print outs this information about changed files
+prints out this information about changed files
 
 .. code-block:: sh
 
@@ -317,7 +317,7 @@ Acknowledgements
 ================
 
 This project was inspired by and is originally based upon
-`pyment <https://github.com/dadadel/pyment/>`__. The intended
+`pymend <https://github.com/dadadel/pymend/>`__. The intended
 functionality as well as the main entry point remain largerly unchanged.
 However additional functionality has been added in the form of ast
 traversal for extracting function and class information.
