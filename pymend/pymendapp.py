@@ -160,7 +160,7 @@ def run(
     Raises
     ------
     AssertionError
-        If the input and output lines are identical but pyment reports
+        If the input and output lines are identical but pymend reports
         some elements to have changed.
     """
     for file in files:
@@ -195,7 +195,7 @@ def run(
 def read_pyproject_toml(
     ctx: click.Context, _param: click.Parameter, value: Optional[str]
 ) -> Optional[str]:
-    """Inject Black configuration from "pyproject.toml" into defaults in `ctx`.
+    """Inject Pymend configuration from "pyproject.toml" into defaults in `ctx`.
 
     Returns the path to a successfully found and read configuration file, None
     otherwise.

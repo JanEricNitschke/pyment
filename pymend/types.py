@@ -698,7 +698,7 @@ class FunctionDocstring(DocstringInfo):
             # unknown exceptions then remove one of those instead.
             # For example when exception stored in variable and raised later.
             # We want people to be able to specific them by name and not have
-            # pyment constantly forced unnamed raises on them.
+            # pymend constantly force unnamed raises on them.
             elif "" in raised_in_body:
                 raised_in_body.remove("")
         for missing_raise in raised_in_body:
