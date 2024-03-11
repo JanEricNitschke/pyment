@@ -195,7 +195,7 @@ def run(
 def read_pyproject_toml(
     ctx: click.Context, _param: click.Parameter, value: Optional[str]
 ) -> Optional[str]:
-    """Inject Black configuration from "pyproject.toml" into defaults in `ctx`.
+    """Inject Pymend configuration from "pyproject.toml" into defaults in `ctx`.
 
     Returns the path to a successfully found and read configuration file, None
     otherwise.
