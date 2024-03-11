@@ -317,7 +317,7 @@ Acknowledgements
 ================
 
 This project was inspired by and is originally based upon
-`pymend <https://github.com/dadadel/pymend/>`__. The intended
+`pyment <https://github.com/dadadel/pyment/>`__. The intended
 functionality as well as the main entry point remain largerly unchanged.
 However additional functionality has been added in the form of ast
 traversal for extracting function and class information.
