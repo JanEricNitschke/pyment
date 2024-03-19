@@ -80,7 +80,7 @@ exclude = [
 # Same as Black.
 line-length = 88
 
-# Assume Python 3.8.
+# Assume Python 3.9.
 target-version = "py39"
 
 [tool.ruff.lint]
@@ -95,7 +95,7 @@ ignore = [
     "ISC001",
     "C901",   # Do not like
     "ANN101", # Super stupid rule
-    "FA100",  # I like the import
+    "FA100",  # I do not like the import
     "PERF",   # False positives and no real benefit
     "PTH",    # Later maybe, definitely when there is autofix
 ]
