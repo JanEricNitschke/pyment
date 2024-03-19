@@ -330,7 +330,7 @@ fork <https://github.com/jsh9/docstring_parser_fork>`__.
 
 So far only minor modifications have been made to the docstring parsing
 functionality. Mainly the addition of the “Methods” section for numpydoc
-style docstrings. Additionally the the code has been linted as well as
+style docstrings. Additionally the code has been linted as well as
 type hinted.
 
 The code for configuration and file handling as well as the structure of the documentation
