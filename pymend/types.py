@@ -11,7 +11,7 @@ from typing_extensions import TypeAlias, override
 
 import pymend.docstring_parser as dsp
 
-from .const import DEFAULT_DESCRIPTION, DEFAULT_SUMMARY, DEFAULT_TYPE
+from .const import DEFAULT_DESCRIPTION, DEFAULT_EXCEPTION, DEFAULT_SUMMARY, DEFAULT_TYPE
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2023-2024"
@@ -688,10 +688,17 @@ class FunctionDocstring(DocstringInfo):
         if self.docstring and not settings.force_raises:
             return
         # Only consider those raises that are not already raised in the body.
-        # We are potentially raising the same time of exception multiple times.
-        # Only remove the first of each type per one encountered in the docstring.
+        # We are potentially raising the same type of exception multiple times.
+        # Only remove the first of each type per one encountered in the docstring..
         raised_in_body = self.body.raises.copy()
-        for raised in docstring.raises:
+        # Sort the raised assertionts so that `DEFAULT_EXCEPTION` are at the beginning.
+        # This ensures that these are removed first before we start removing
+        # them through more specific exceptions
+        for raised in sorted(
+            docstring.raises,
+            key=lambda x: x.type_name == DEFAULT_EXCEPTION,
+            reverse=True,
+        ):
             if raised.type_name in raised_in_body:
                 raised_in_body.remove(raised.type_name)
             # If this specific Error is not in the body but the body contains
@@ -699,8 +706,8 @@ class FunctionDocstring(DocstringInfo):
             # For example when exception stored in variable and raised later.
             # We want people to be able to specific them by name and not have
             # pymend constantly force unnamed raises on them.
-            elif "" in raised_in_body:
-                raised_in_body.remove("")
+            elif DEFAULT_EXCEPTION in raised_in_body:
+                raised_in_body.remove(DEFAULT_EXCEPTION)
         for missing_raise in raised_in_body:
             self.issues.append(f"Missing raised exception `{missing_raise}`.")
             docstring.meta.append(

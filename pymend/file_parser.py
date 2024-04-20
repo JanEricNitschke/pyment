@@ -7,6 +7,7 @@ from typing import Optional, Union, get_args, overload
 
 from typing_extensions import TypeGuard
 
+from .const import DEFAULT_EXCEPTION
 from .types import (
     BodyTypes,
     ClassDocstring,
@@ -82,7 +83,7 @@ class AstAnalyzer:
     ) -> list[ElementDocstring]:
         """Walk AST of the input file extract info about module, classes and functions.
 
-        For the module and classes and the raw docstring
+        For the module and classes, the raw docstring
         and its line numbers are extracted.
 
         For functions the raw docstring and its line numbers are extracted.
@@ -309,19 +310,17 @@ class AstAnalyzer:
         Returns
         -------
         str
-            Modifier(s) of the string.
+            Modifier of the string.
         """
         line = line.strip()
         delimiters = ['"""', "'''"]
-        modifiers = ["r", "u", "f"]
+        modifiers = ["r", "u"]
         if not line:
             return ""
         if line[:3] in delimiters:
             return ""
-        if line[0] in modifiers and line[1:4] in delimiters:
+        if line[0].lower() in modifiers and line[1:4] in delimiters:
             return line[0]
-        if line[0] in modifiers and line[1] in modifiers and line[2:5] in delimiters:
-            return line[:2]
         return ""
 
     def _get_docstring_line(self) -> int:
@@ -510,7 +509,7 @@ class AstAnalyzer:
             elif isinstance(node, ast.Raise):
                 pascal_case_regex = r"^(?:[A-Z][a-z]+)+$"
                 if not node.exc:
-                    raises.append("")
+                    raises.append(DEFAULT_EXCEPTION)
                 elif isinstance(node.exc, ast.Name) and re.match(
                     pascal_case_regex, node.exc.id
                 ):
@@ -522,7 +521,7 @@ class AstAnalyzer:
                 ):
                     raises.append(node.exc.func.id)
                 else:
-                    raises.append("")
+                    raises.append(DEFAULT_EXCEPTION)
         return FunctionBody(
             returns_value=returns_value,
             returns=returns,

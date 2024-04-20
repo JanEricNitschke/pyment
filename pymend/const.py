@@ -8,3 +8,4 @@ DEFAULT_EXCLUDES = re.compile(
 DEFAULT_DESCRIPTION = "_description_"
 DEFAULT_TYPE = "_type_"
 DEFAULT_SUMMARY = "_summary_."
+DEFAULT_EXCEPTION = "__UnknownError__"
