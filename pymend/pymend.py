@@ -1,7 +1,6 @@
 """Module for general management of writing docstrings of multiple files."""
 
 import ast
-import os
 import platform
 import sys
 import tempfile
@@ -51,7 +50,7 @@ class PyComment:
 
     def __init__(
         self,
-        input_file: str,
+        input_file: Path,
         *,
         fixer_settings: FixerSettings,
         output_style: dsp.DocstringStyle = dsp.DocstringStyle.NUMPYDOC,
@@ -62,7 +61,7 @@ class PyComment:
 
         Parameters
         ----------
-        input_file : str
+        input_file : Path
             path name (file or folder)
         fixer_settings : FixerSettings
             Settings for which fixes should be performed.
@@ -80,7 +79,7 @@ class PyComment:
         """
         self.input_file = input_file
         self.style = Styles(input_style, output_style)
-        input_lines = Path(self.input_file).read_text(encoding="utf-8")
+        input_lines = self.input_file.read_text(encoding="utf-8")
         self._input = FileContentRepresentation(
             input_lines.splitlines(keepends=True), input_lines
         )
@@ -514,7 +513,7 @@ class PyComment:
         if self._changed:
             lines_to_write = self._get_patch_lines()
 
-            if self.input_file == "-":
+            if self.input_file.name == "-":
                 sys.stdout.writelines(lines_to_write)
             else:
                 self._write_patch_file(lines_to_write)
@@ -555,7 +554,7 @@ class PyComment:
                 f" This invalid output might be helpful: {log}"
             )
             raise AssertionError(msg)
-        if self.input_file == "-":
+        if self.input_file.name == "-":
             sys.stdout.writelines(self._output.lst)
         elif self._input.lines != self._output.lines:
             echo(
@@ -594,8 +593,10 @@ class PyComment:
         lines_to_write : list[str]
             lines to write to the file - they should be \n terminated
         """
-        with open(
-            f"{os.path.basename(self.input_file)}.patch", "w", encoding="utf-8"
+        # Change this if pathlib ever gets a `append_suffix` method
+        # To Path(self.input_file).append_suffix(".patch")
+        with Path(f"{Path(self.input_file).name}.patch").open(
+            "w", encoding="utf-8"
         ) as file:
             file.writelines(lines_to_write)
 
@@ -607,10 +608,10 @@ class PyComment:
         lines_to_write : list[str]
             lines to write to the file - they should be \n terminated
         """
-        tmp_filename = f"{self.input_file}.writing"
+        tmp_filename = Path(f"{self.input_file}.writing")
         ok = False
         try:
-            with open(tmp_filename, "w", encoding="utf-8") as file:
+            with tmp_filename.open("w", encoding="utf-8") as file:
                 file.writelines(self._output.lines)
             ok = True
         finally:
@@ -618,21 +619,22 @@ class PyComment:
                 if platform.system() == "Windows":
                     self._windows_rename(tmp_filename)
                 else:
-                    os.rename(tmp_filename, self.input_file)
+                    tmp_filename.rename(self.input_file)
             else:
-                os.unlink(tmp_filename)
+                tmp_filename.unlink()
 
-    def _windows_rename(self, tmp_filename: str) -> None:
+    def _windows_rename(self, tmp_filename: Path) -> None:
         """Workaround the fact that os.rename raises an OSError on Windows.
 
         Parameters
         ----------
-        tmp_filename : str
+        tmp_filename : Path
             The file to rename
         """
-        if os.path.isfile(self.input_file):
-            os.remove(self.input_file)
-        os.rename(tmp_filename, self.input_file)
+        input_file = Path(self.input_file)
+        if input_file.is_file():
+            input_file.unlink()
+        tmp_filename.rename(input_file)
 
     def report_issues(self) -> tuple[int, str]:
         """Produce a report of all found issues with the docstrings in the file.

@@ -1,5 +1,5 @@
 """Module for testing pymend."""
 
-import os
+from pathlib import Path
 
-current_dir = os.path.dirname(__file__)
+current_dir = Path(__file__).parent

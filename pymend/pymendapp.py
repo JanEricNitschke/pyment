@@ -4,6 +4,7 @@
 import platform
 import re
 import traceback
+from pathlib import Path
 from re import Pattern
 from typing import Any, Optional, Union
 
@@ -172,7 +173,7 @@ def run(
             continue
         try:
             comment = PyComment(
-                file,
+                Path(file),
                 output_style=output_style,
                 input_style=input_style,
                 fixer_settings=fixer_settings,
