@@ -97,7 +97,6 @@ ignore = [
     "ANN101", # Super stupid rule
     "FA100",  # I do not like the import
     "PERF",   # False positives and no real benefit
-    "PTH",    # Later maybe, definitely when there is autofix
 ]
 # ignore = ["ANN101", "COM", "FA", "PTH", "C901", "PERF"]
 # Allow unused variables when underscore-prefixed.

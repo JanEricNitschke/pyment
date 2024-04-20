@@ -1,16 +1,16 @@
 """Testing issues raised on github."""
 
-import os
+from pathlib import Path
 
 import pytest
 
 import pymend.pymend as pym
 from pymend.types import FixerSettings
 
-current_dir = os.path.dirname(__file__)
+current_dir = Path(__file__).parent
 
 
-def absdir(file: str) -> str:
+def absdir(file: str) -> Path:
     """Get absolute path for file.
 
     Parameters
@@ -23,7 +23,7 @@ def absdir(file: str) -> str:
     str
         Absolute path to file
     """
-    return os.path.join(current_dir, file)
+    return current_dir / Path(file)
 
 
 class TestIssues:

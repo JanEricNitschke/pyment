@@ -5,6 +5,7 @@ import re
 import subprocess
 import tempfile
 import textwrap
+from pathlib import Path
 from re import Pattern
 from typing import Optional, Union
 
@@ -44,7 +45,7 @@ class TestApp:
 
         # cwd to use when running subprocess.
         # It has to be at the repo directory so python -m can be used
-        self.CWD = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.CWD = Path(__file__).parent.parent.parent
 
         self.INPUT = textwrap.dedent(
             '''
@@ -313,7 +314,8 @@ class TestApp:
         output_format : Optional[str]
             If not using auto mode set the output format to this. (Default value = None)
         """
-        patch_filename = input_filename = ""
+        patch_filename = Path()
+        input_filename = ""
         input_file = None
 
         try:
@@ -325,9 +327,7 @@ class TestApp:
 
             # Get the patch file name so it can be removed if it's created.
             # pymend will create it in the current working directory
-            patch_filename = os.path.join(
-                self.CWD, f"{os.path.basename(input_filename)}.patch"
-            )
+            patch_filename = self.CWD / Path(f"{Path(input_filename).name}.patch")
 
             cmd_args = f"{cmd_args} {input_filename}"
 
@@ -343,15 +343,15 @@ class TestApp:
             )
 
             if overwrite_mode:
-                with open(input_filename, encoding="utf-8") as file:
+                with Path(input_filename).open(encoding="utf-8") as file:
                     output = file.read()
             else:
-                with open(patch_filename, encoding="utf-8") as file:
+                with patch_filename.open(encoding="utf-8") as file:
                     output = file.read()
                 # The expected output will have filenames of '-'
                 # - replace them with the actual filename
                 output = re.sub(
-                    rf"/{os.path.basename(input_filename)}$",
+                    rf"/{Path(input_filename).name}$",
                     r"/-",
                     output,
                     flags=re.MULTILINE,
@@ -372,10 +372,10 @@ class TestApp:
             if input_filename:
                 if input_file and not input_file.closed:
                     input_file.close()
-                os.remove(input_filename)
+                Path(input_filename).unlink()
 
-            if not overwrite_mode and os.path.isfile(patch_filename):
-                os.remove(patch_filename)
+            if not overwrite_mode and patch_filename.is_file():
+                patch_filename.unlink()
 
     def test_overwrite_files_the_same(self) -> None:
         """Test that the file is correct when the output is the same as the input."""

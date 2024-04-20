@@ -1,19 +1,19 @@
 """Test general pymend functionality."""
 
-import os
 import pathlib
 import re
 import shutil
+from pathlib import Path
 
 import pytest
 
 import pymend.pymend as pym
 from pymend.types import FixerSettings
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = Path(__file__).parent
 
 
-def absdir(file: str) -> str:
+def absdir(file: str) -> Path:
     """Get absolute path for file.
 
     Parameters
@@ -26,7 +26,7 @@ def absdir(file: str) -> str:
     str
         Absolute path to file
     """
-    return os.path.join(CURRENT_DIR, file)
+    return CURRENT_DIR / Path(file)
 
 
 def get_expected_patch(name: str) -> str:
@@ -43,7 +43,7 @@ def get_expected_patch(name: str) -> str:
         Expected patch as a string.
     """
     try:
-        with open(absdir(f"refs/{name}"), encoding="utf-8") as file:
+        with absdir(f"refs/{name}").open(encoding="utf-8") as file:
             expected_lines = file.readlines()
             if expected_lines[0].startswith("# Patch"):
                 expected_lines = expected_lines[2:]
@@ -89,16 +89,16 @@ class TestDocStrings:
         txt = txt.replace("@return", ":returns")
         txt = txt.replace("@raise", ":raises")
         txt = txt.replace("@", ":")
-        with open(self.rstfile, "w", encoding="utf-8") as rstfile:
+        with self.rstfile.open("w", encoding="utf-8") as rstfile:
             rstfile.write(txt)
-        with open(self.foo, "w", encoding="utf-8") as fooo:
+        with self.foo.open("w", encoding="utf-8") as fooo:
             fooo.write("foo")
 
     def teardown_class(self) -> None:
         """Tear down class by deleting files."""
-        os.remove(self.jvdfile)
-        os.remove(self.rstfile)
-        os.remove(self.foo)
+        self.jvdfile.unlink()
+        self.rstfile.unlink()
+        self.foo.unlink()
 
     def test_parsed_javadoc(self) -> None:
         """Test that javadoc comments get parsed."""
@@ -108,12 +108,12 @@ class TestDocStrings:
     def test_windows_rename(self) -> None:
         """Check that renaming works correctly."""
         bar = absdir("bar")
-        with open(bar, "w", encoding="utf-8") as fbar:
+        with bar.open("w", encoding="utf-8") as fbar:
             fbar.write("bar")
         comment = pym.PyComment(self.foo, fixer_settings=FixerSettings())
-        comment._windows_rename(bar)
-        assert not os.path.isfile(bar)
-        assert os.path.isfile(self.foo)
+        comment._windows_rename(Path(bar))
+        assert not bar.is_file()
+        assert self.foo.is_file()
         foo_txt = pathlib.Path(self.foo).read_text(encoding="utf-8")
         assert foo_txt == "bar"
 

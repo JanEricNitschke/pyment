@@ -117,7 +117,7 @@ def parse_pyproject_toml(path_config: str) -> dict[str, Any]:
     dict[str, Any]
         Configuration dictionary parsed from pyproject.toml
     """
-    with open(path_config, "rb") as f:
+    with Path(path_config).open("rb") as f:
         pyproject_toml: dict[str, Any] = tomllib.load(f)
     config: dict[str, Any] = pyproject_toml.get("tool", {}).get("pymend", {})
     return {k.replace("--", "").replace("-", "_"): v for k, v in config.items()}
