@@ -2,8 +2,10 @@
 
 import ast
 
+import pytest
+
 from pymend.file_parser import AstAnalyzer
-from pymend.types import FixerSettings, Parameter
+from pymend.types import ClassDocstring, FixerSettings, FunctionDocstring, Parameter
 
 
 class TestAstAnalyzer:
@@ -58,6 +60,105 @@ class C:
         expected_methods = ["c(c)"]
         assert attributes == expected_attributes
         assert methods == expected_methods
+
+    def test_handle_skipped_class_body(self) -> None:
+        """Ensure that classes are skipped as desired."""
+        class_definitions = """\
+class C:
+    def __init__(self):
+        self._x = None
+        self.test1 = "test"
+
+class Skipped:
+    def __init__(self):
+        self._x = None
+"""
+        analyzer = AstAnalyzer(
+            class_definitions, settings=FixerSettings(ignored_classes=["Skipped"])
+        )
+        nodes = [
+            node
+            for node in analyzer.parse_from_ast()
+            if isinstance(node, ClassDocstring)
+        ]
+        assert len(nodes) == 1
+        assert nodes[0].name == "C"
+
+    def test_shebang_pragma_handling(self) -> None:
+        """Ensure that shebang pragma is handled correctly."""
+        shebang_pragma = """\
+#!/usr/bin/env python
+# -*- coding: big5 -*-
+"""
+        analyzer = AstAnalyzer(shebang_pragma, settings=FixerSettings())
+        nodes = analyzer.parse_from_ast()
+        assert len(nodes) == 1
+        assert nodes[0].lines == (3, 3)
+
+    def test_invalid_syntax(self) -> None:
+        """Ensure that invalid syntax raises an exception."""
+        invalid_syntax = """\
+class C:
+    def __init__(self):
+        self._x =
+        self.test1 = "test"
+"""
+        analyzer = AstAnalyzer(invalid_syntax, settings=FixerSettings())
+        with pytest.raises(AssertionError, match="Failed to parse source file AST"):
+            analyzer.parse_from_ast()
+
+    def test_handle_docstring_modifiers(self) -> None:
+        """Test that docstring modifiers are handled correctly."""
+        function_definitions = '''\
+def test_function_1():
+    """No modifier."""
+
+def test_function_2():
+    r"""Raw string."""
+
+def test_function_3():
+    u"""Unicode string."""
+
+def test_function_4():
+    R"""Raw string."""
+
+def test_function_5():
+    U"""Unicode string."""
+'''
+        analyzer = AstAnalyzer(function_definitions, settings=FixerSettings())
+        nodes = [
+            node
+            for node in analyzer.parse_from_ast()
+            if isinstance(node, FunctionDocstring)
+        ]
+        assert len(nodes) == 5
+        assert nodes[0].modifier == ""
+        assert nodes[1].modifier == "r"
+        assert nodes[2].modifier == "u"
+        assert nodes[3].modifier == "R"
+        assert nodes[4].modifier == "U"
+
+    def test_skip_private_methods(self) -> None:
+        """Ensure that private methods are skipped when requested."""
+        function_definitions = """\
+class C:
+    def func1(self):
+        pass
+
+    def _func2(self):
+        pass
+"""
+        analyzer = AstAnalyzer(
+            function_definitions, settings=FixerSettings(ignore_privates=True)
+        )
+        nodes = [
+            node
+            for node in analyzer.parse_from_ast()
+            if isinstance(node, ClassDocstring)
+        ]
+        assert len(nodes) == 1
+        assert len(nodes[0].methods) == 1
+        assert nodes[0].methods[0] == "func1()"
 
     def test_calculate_function_length(self) -> None:
         """Test that nested function statement length is calculated correctly."""
