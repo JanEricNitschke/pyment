@@ -355,7 +355,7 @@ class PyComment:
         """
         try:
             src_ast = ast.parse(src_lines)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             msg = f"Failed to parse source file AST: {exc}\n"
             raise AssertionError(msg) from exc
         try:

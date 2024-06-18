@@ -102,7 +102,7 @@ class AstAnalyzer:
         nodes_of_interest: list[ElementDocstring] = []
         try:
             file_ast = ast.parse(self.file_content)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             msg = f"Failed to parse source file AST: {exc}\n"
             raise AssertionError(msg) from exc
         for node in ast.walk(file_ast):
