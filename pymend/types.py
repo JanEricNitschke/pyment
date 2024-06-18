@@ -82,7 +82,7 @@ class DocstringInfo:
         self._escape_triple_quotes()
         try:
             parsed = dsp.parse(self.docstring, style=input_style)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             msg = f"Failed to parse docstring for `{self.name}` with error: `{e}`"
             raise AssertionError(msg) from e
         self._fix_docstring(parsed, settings)
