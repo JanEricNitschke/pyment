@@ -56,7 +56,7 @@ def _pairwise(
     return zip(left, itertools.chain(right, [end]))
 
 
-KV_REGEX = re.compile(r"^[^\s].*$", flags=re.M)
+KV_REGEX = re.compile(r"^[^\s].*$", flags=re.MULTILINE)
 PARAM_KEY_REGEX = re.compile(r"^(?P<name>.*?)(?:\s+:\s*(?P<type>.*?))?$")
 PARAM_OPTIONAL_REGEX = re.compile(r"(?P<type>.*?)(?:, optional|\(optional\))$")
 
@@ -554,7 +554,7 @@ class NumpydocParser:
         """Set up parser title regex."""
         self.titles_re = re.compile(
             r"|".join(s.title_pattern for s in self.sections.values()),
-            flags=re.M,
+            flags=re.MULTILINE,
         )
 
     def add_section(self, section: Section) -> None:

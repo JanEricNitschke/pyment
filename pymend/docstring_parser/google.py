@@ -115,7 +115,7 @@ class GoogleParser:
             + ")"
             + colon
             + "[ \t\r\f\v]*$",
-            flags=re.M,
+            flags=re.MULTILINE,
         )
 
     @staticmethod
@@ -396,7 +396,7 @@ class GoogleParser:
             If no entry could be found with the expected indent.
         """
         # Split based on lines which have exactly that indent
-        c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.M))
+        c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.MULTILINE))
         if not c_matches:
             msg = f'No specification for "{title}": "{chunk}"'
             raise ParseError(msg)

@@ -163,7 +163,7 @@ def _build_deprecation(args: list[str], desc: str) -> DocstringDeprecated:
     match = re.search(
         r"^(?P<version>v?((?:\d+)(?:\.[0-9a-z\.]+))) (?P<desc>.+)",
         desc,
-        flags=re.I,
+        flags=re.IGNORECASE,
     )
     return DocstringDeprecated(
         args=args,
@@ -250,7 +250,7 @@ def _get_chunks(text: str) -> tuple[str, str]:
     tuple[str, str]
         Args and description.
     """
-    if match := re.search("^:", text, flags=re.M):
+    if match := re.search("^:", text, flags=re.MULTILINE):
         return text[: match.start()], text[match.start() :]
     return text, ""
 
@@ -305,7 +305,9 @@ def _extract_type_info(
     types: dict[str, str] = {}
     rtypes: dict[Optional[str], str] = {}
     ytypes: dict[Optional[str], str] = {}
-    for chunk_match in re.finditer(r"(^:.*?)(?=^:|\Z)", meta_chunk, flags=re.S | re.M):
+    for chunk_match in re.finditer(
+        r"(^:.*?)(?=^:|\Z)", meta_chunk, flags=re.DOTALL | re.MULTILINE
+    ):
         chunk = chunk_match.group(0)
         if not chunk:
             continue
