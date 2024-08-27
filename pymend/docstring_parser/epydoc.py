@@ -104,7 +104,9 @@ def _tokenize(
         been matched in a specific section.
     """
     stream: list[StreamToken] = []
-    for chunk_match in re.finditer(r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.S | re.M):
+    for chunk_match in re.finditer(
+        r"(^@.*?)(?=^@|\Z)", meta_chunk, flags=re.DOTALL | re.MULTILINE
+    ):
         chunk = chunk_match.group(0)
         if not chunk:
             continue
@@ -289,7 +291,7 @@ def parse(text: Optional[str]) -> Docstring:
         return ret
 
     text = inspect.cleandoc(text)
-    if match := re.search("^@", text, flags=re.M):
+    if match := re.search("^@", text, flags=re.MULTILINE):
         desc_chunk = text[: match.start()]
         meta_chunk = text[match.start() :]
     else:

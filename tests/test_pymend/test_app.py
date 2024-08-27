@@ -153,9 +153,9 @@ class TestApp:
         tuple[str, str, int]
             stdout, stderr, returncode
         """
-        process = subprocess.Popen(
+        process = subprocess.Popen(  # noqa: S602
             cmd_to_run,
-            shell=True,  # noqa: S602
+            shell=True,
             cwd=self.CWD,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
