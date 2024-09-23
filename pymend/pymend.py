@@ -252,6 +252,7 @@ class PyComment:
 
     def _finalizes(
         self,
+        *,
         docstring: str,
         quotes: str = '"""',
         indentation: str = "    ",
