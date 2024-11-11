@@ -25,8 +25,8 @@ from .types import (
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2023-2024"
-__licence__ = "GPL3"
-__version__ = "1.0.0"
+__licence__ = "MIT"
+__version__ = "1.0.11"
 __maintainer__ = "J-E. Nitschke"
 
 
@@ -745,7 +745,7 @@ class AstAnalyzer:
         attributes: list[Parameter] = []
         for node in init.body:
             if isinstance(node, ast.Assign):
-                # Targets is a list in case of multiple assignent
+                # Targets is a list in case of multiple assignment
                 # a = b = 3  # noqa: ERA001
                 for target in node.targets:
                     self._check_and_handle_assign_node(target, attributes)
