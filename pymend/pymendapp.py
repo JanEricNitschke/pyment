@@ -283,7 +283,7 @@ def read_pyproject_toml(
     callback=style_option_callback,
     multiple=False,
     default="numpydoc",
-    help=("Output docstring style."),
+    help="Output docstring style.",
 )
 @click.option(
     "-i",
@@ -317,7 +317,7 @@ def read_pyproject_toml(
         "A regular expression that matches files and directories that should be"
         " excluded. An empty value means no paths are excluded."
         " Use forward slashes for directories on all platforms (Windows, too)."
-        f"[default: {DEFAULT_EXCLUDES}]"
+        f" [default: {DEFAULT_EXCLUDES}]"
     ),
     show_default=False,
 )
@@ -336,15 +336,15 @@ def read_pyproject_toml(
     is_flag=True,
     default=True,
     help="Whether to force a parameter section even if"
-    " there is already an existing docstring. "
-    "If set will also fill force the parameters section to name every parameter.",
+    " there is already an existing docstring."
+    " If set will also force the parameters section to name every parameter.",
 )
 @click.option(
     "--force-params-min-n-params",
     type=int,
     default=0,
-    help="Minimum number of arguments detected in the signature "
-    "to actually enforce parameters."
+    help="Minimum number of arguments detected in the signature"
+    " to actually enforce parameters."
     " If less than the specified numbers of arguments are"
     " detected then a parameters section is only build for new docstrings."
     " No new sections are created for existing docstrings and existing sections"
@@ -354,9 +354,9 @@ def read_pyproject_toml(
     "--force-meta-min-func-length",
     type=int,
     default=0,
-    help="Minimum number statements in the function body "
-    "to actually enforce parameters."
-    " If less than the specified numbers of arguments are"
+    help="Minimum number statements in the function body"
+    " to actually enforce parameters."
+    " If less than the specified numbers of statements are"
     " detected then a parameters section is only build for new docstrings."
     " No new sections are created for existing docstrings and existing sections"
     " are not extended. Only has an effect with"
@@ -368,8 +368,8 @@ def read_pyproject_toml(
     is_flag=True,
     default=True,
     help="Whether to force a return/yield section even if"
-    " there is already an existing docstring. "
-    "Will only actually force return/yield sections"
+    " there is already an existing docstring."
+    " Will only actually force return/yield sections"
     " if any value return or yield is found in the body.",
 )
 @click.option(
@@ -417,7 +417,7 @@ def read_pyproject_toml(
     is_flag=True,
     default=True,
     help="Whether to ignore arguments starting with an underscore '_'"
-    " are ignored when building parameter sections.",
+    " when building parameter sections.",
 )
 @click.option(
     "--ignored-decorators",
@@ -444,7 +444,7 @@ def read_pyproject_toml(
     "--force-defaults/--unforce-defaults",
     is_flag=True,
     default=True,
-    help="Whether to enforce descriptions need to"
+    help="Whether to enforce descriptions having to"
     " name/explain the default value of their parameter.",
 )
 @click.option(
