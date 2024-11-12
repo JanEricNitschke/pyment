@@ -63,7 +63,7 @@ MULTIPLE_PATTERN = re.compile(
     # Allow whitespace if we have a closing ] before the color, optionally with a )
     # some var name (list[int, int]): some description
     r"|([^:]*\]:.*)"
-    # Allow for arbitrary changing of pipe character for type annotations int | str
+    # Allow for arbitrary chaining of pipe character for type annotations int | str
     # Where the individual types are allowed to have spaces as long as they start
     # and end without one ([^\s|][^\|]*[^\s|])
     r"|(\s*[^\s|][^\|]*[^\s|](\s*\|\s*[^\s|][^\|]*[^\s|])+:)"
@@ -546,9 +546,11 @@ def compose(  # noqa: PLR0915
             head += f" ({one.type_name}{optional}):"
         elif one.type_name:
             head += f"{one.type_name}{optional}:"
-        else:
+        elif head:
             head += ":"
-        head = indent + head
+
+        if head:
+            head = indent + head
 
         if one.description and rendering_style == RenderingStyle.EXPANDED:
             body = f"\n{indent}{indent}".join([head, *one.description.splitlines()])

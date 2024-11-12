@@ -704,7 +704,7 @@ def compose(  # noqa: PLR0915, PLR0912
         elif one.type_name:
             head = one.type_name
         elif not head:
-            head = ""
+            head = "__missing_required_field__"
 
         if isinstance(one, DocstringParam) and one.is_optional:
             head += ", optional"
