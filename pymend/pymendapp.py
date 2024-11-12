@@ -448,6 +448,18 @@ def read_pyproject_toml(
     " name/explain the default value of their parameter.",
 )
 @click.option(
+    "--force-return-type/--unforce-return-type",
+    is_flag=True,
+    default=True,
+    help="Whether to force the returns/yields section to specify type information.",
+)
+@click.option(
+    "--force-arg-types/--unforce-arg-types",
+    is_flag=True,
+    default=True,
+    help="Whether to force the arguments section to specify type information.",
+)
+@click.option(
     "-q",
     "--quiet",
     is_flag=True,
@@ -518,6 +530,8 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     ignored_functions: list[str],
     ignored_classes: list[str],
     force_defaults: bool,
+    force_return_type: bool,
+    force_arg_types: bool,
     quiet: bool,
     verbose: bool,
     src: tuple[str, ...],
@@ -558,6 +572,8 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         ignored_functions=ignored_functions,
         ignored_classes=ignored_classes,
         force_defaults=force_defaults,
+        force_return_type=force_return_type,
+        force_arg_types=force_arg_types,
     )
 
     run(

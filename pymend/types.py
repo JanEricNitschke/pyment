@@ -37,6 +37,8 @@ class FixerSettings:
     ignored_functions: list[str] = field(default_factory=lambda: ["main"])
     ignored_classes: list[str] = field(default_factory=list)
     force_defaults: bool = True
+    force_return_type: bool = True
+    force_arg_types: bool = True
 
 
 @dataclass
@@ -479,13 +481,26 @@ class FunctionDocstring(DocstringInfo):
         for name, param_sig in params_from_sig.items():
             if name in params_from_doc:
                 param_doc = params_from_doc[name]
-                if param_sig.type_name and param_sig.type_name != param_doc.type_name:
+                if (
+                    param_sig.type_name
+                    and param_sig.type_name != param_doc.type_name
+                    and settings.force_arg_types
+                ):
                     self.issues.append(
                         f"{name}: Parameter type was"
                         f" `{param_doc.type_name} `but signature"
                         f" has type hint `{param_sig.type_name}`."
                     )
-                param_doc.type_name = param_sig.type_name or param_doc.type_name
+                elif param_doc.type_name and not settings.force_arg_types:
+                    self.issues.append(
+                        f"{name}: Parameter had type despite "
+                        "`force-arg-types=False` being set."
+                    )
+                param_doc.type_name = (
+                    (param_sig.type_name or param_doc.type_name)
+                    if settings.force_arg_types
+                    else None
+                )
                 param_doc.is_optional = False
                 if param_sig.default:
                     param_doc.default = param_sig.default
@@ -576,7 +591,9 @@ class FunctionDocstring(DocstringInfo):
                 dsp.DocstringReturns(
                     args=["returns"],
                     description=DEFAULT_DESCRIPTION,
-                    type_name=sig_return or DEFAULT_TYPE,
+                    type_name=(sig_return or DEFAULT_TYPE)
+                    if settings.force_return_type
+                    else None,
                     is_generator=False,
                     return_name=None,
                 )
@@ -585,12 +602,25 @@ class FunctionDocstring(DocstringInfo):
         # yield anything then correct it with the actual return value.
         elif len(doc_returns) == 1 and not self.body.yields_value:
             doc_return = doc_returns[0]
-            if sig_return and doc_return.type_name != sig_return:
+            if (
+                sig_return
+                and doc_return.type_name != sig_return
+                and settings.force_return_type
+            ):
                 self.issues.append(
                     f"Return type was `{doc_return.type_name}` but"
                     f" signature has type hint `{sig_return}`."
                 )
-            doc_return.type_name = sig_return or doc_return.type_name
+            elif doc_return.type_name and not settings.force_return_type:
+                self.issues.append(
+                    "Return type was specified despite "
+                    "`force-return-type=False` being set."
+                )
+            doc_return.type_name = (
+                (sig_return or doc_return.type_name)
+                if settings.force_return_type
+                else None
+            )
         # If we have multiple return values specified
         # and we have only extracted one set of return values from the body.
         # then update the multiple return values with the names from

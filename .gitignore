@@ -16,3 +16,6 @@ coverage.json
 
 # Sphinx documentation
 docs/_build/
+
+# File for experimentation
+test.py

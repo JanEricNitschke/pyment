@@ -1220,7 +1220,7 @@ def test_compose_docstring() -> None:
     ]
     expected = """\
 Raises:
-    :
+
 
 Meta:
     Some description
