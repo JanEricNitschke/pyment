@@ -252,7 +252,7 @@ class DocstringInfo:
                     f" {returned.type_name} |"
                     f" {returned.description}`."
                 )
-            elif not settings.force_return_type:
+            elif returned.type_name and not settings.force_return_type:
                 self.issues.append(RETURN_TYPE_SET)
             returned.type_name = (
                 (returned.type_name or DEFAULT_TYPE)
