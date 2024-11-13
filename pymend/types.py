@@ -16,7 +16,7 @@ from .const import DEFAULT_DESCRIPTION, DEFAULT_EXCEPTION, DEFAULT_SUMMARY, DEFA
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2023-2024"
 __licence__ = "MIT"
-__version__ = "1.0.11"
+__version__ = "1.0.12"
 __maintainer__ = "J-E. Nitschke"
 
 
