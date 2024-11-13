@@ -57,6 +57,144 @@ def ast_unparse(node: Optional[ast.AST]) -> Optional[str]:
     return ast.unparse(node)
 
 
+class FunctionNodeVisitor:  # pylint: disable=too-few-public-methods
+    """Visit all subnodes of the function."""
+
+    def __init__(
+        self, start_node: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+    ) -> None:
+        """Visit all subnodes of the function.
+
+        Collect returns, yields and raises.
+        Discard returns and yields from nested functions.
+
+        Parameters
+        ----------
+        start_node : Union[ast.FunctionDef, ast.AsyncFunctionDef]
+            Node to start traversal from.
+        """
+        self.name = start_node.name
+        self.returns: set[tuple[str, ...]] = set()
+        self.returns_value = False
+        self.yields: set[tuple[str, ...]] = set()
+        self.yields_value = False
+        self.raises: list[str] = []
+
+        self._inside_nested_function = 0
+        self._visit(start_node)
+
+    def _visit(self, node: ast.AST) -> None:
+        """Visit a node."""
+        method = "_visit_" + node.__class__.__name__
+        visitor = getattr(self, method, self._generic_visit)
+        visitor(node)
+
+    def _generic_visit(self, node: ast.AST) -> None:
+        """Call if no explicit visitor function exists for a node."""
+        for _, value in ast.iter_fields(node):
+            if isinstance(value, list):
+                for item in value:  # pyright: ignore[reportUnknownVariableType]
+                    if isinstance(item, ast.AST):
+                        self._visit(item)
+            elif isinstance(value, ast.AST):
+                self._visit(value)
+
+    def _visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Keep track of nested function depth.
+
+        Parameters
+        ----------
+        node : ast.FunctionDef
+            Current node in the traversal.
+        """
+        nested_function = self._inside_nested_function
+        self._inside_nested_function += int(nested_function)
+        self._generic_visit(node)
+        self._inside_nested_function -= int(nested_function)
+
+    def _visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Keep track of nested function depth.
+
+        Parameters
+        ----------
+        node : ast.AsyncFunctionDef
+            Current node in the traversal.
+        """
+        nested_function = self._inside_nested_function
+        self._inside_nested_function += int(nested_function)
+        self._generic_visit(node)
+        self._inside_nested_function -= int(nested_function)
+
+    def _visit_Return(self, node: ast.Return) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Do not process returns from nested functions.
+
+        Parameters
+        ----------
+        node : ast.Return
+            Current node in the traversal.
+        """
+        if not self._inside_nested_function and node.value is not None:
+            self.returns_value = True
+            if isinstance(node.value, ast.Tuple) and all(
+                isinstance(value, ast.Name) for value in node.value.elts
+            ):
+                self.returns.add(AstAnalyzer.get_ids_from_returns(node.value.elts))
+        self._generic_visit(node)
+
+    def _visit_Yield(self, node: ast.Yield) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Do not process yields from nested functions.
+
+        Parameters
+        ----------
+        node : ast.Yield
+            Current node in the traversal.
+        """
+        if not self._inside_nested_function:
+            self.yields_value = True
+            if isinstance(node.value, ast.Tuple) and all(
+                isinstance(value, ast.Name) for value in node.value.elts
+            ):
+                self.yields.add(AstAnalyzer.get_ids_from_returns(node.value.elts))
+        self._generic_visit(node)
+
+    def _visit_YieldFrom(self, node: ast.YieldFrom) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Do not process yields from nested functions.
+
+        Parameters
+        ----------
+        node : ast.YieldFrom
+            Current node in the traversal.
+        """
+        if not self._inside_nested_function:
+            self.yields_value = True
+        self._generic_visit(node)
+
+    def _visit_Raise(self, node: ast.Raise) -> None:  # noqa: N802  # pylint: disable=invalid-name
+        """Do process raises from nested functions.
+
+        Parameters
+        ----------
+        node : ast.Raise
+            Current node in the traversal.
+        """
+        pascal_case_regex = r"^(?:[A-Z][a-z]+)+$"
+        if not node.exc:
+            self.raises.append(DEFAULT_EXCEPTION)
+        elif isinstance(node.exc, ast.Name) and re.match(
+            pascal_case_regex, node.exc.id
+        ):
+            self.raises.append(node.exc.id)
+        elif (
+            isinstance(node.exc, ast.Call)
+            and isinstance(node.exc.func, ast.Name)
+            and re.match(pascal_case_regex, node.exc.func.id)
+        ):
+            self.raises.append(node.exc.func.id)
+        else:
+            self.raises.append(DEFAULT_EXCEPTION)
+        self._generic_visit(node)
+
+
 class AstAnalyzer:
     """Walk ast and extract module, class and function information."""
 
@@ -147,6 +285,7 @@ class AstAnalyzer:
                 lines=(docstring_line, docstring_line),
                 modifier="",
                 issues=[],
+                had_docstring=False,
             )
         return ModuleDocstring(
             name=docstring_info.name,
@@ -154,6 +293,7 @@ class AstAnalyzer:
             lines=docstring_info.lines,
             modifier=docstring_info.modifier,
             issues=docstring_info.issues,
+            had_docstring=docstring_info.had_docstring,
         )
 
     def handle_class(self, cls: ast.ClassDef) -> ClassDocstring:
@@ -179,6 +319,7 @@ class AstAnalyzer:
             issues=docstring.issues,
             attributes=attributes,
             methods=methods,
+            had_docstring=docstring.had_docstring,
         )
 
     def handle_function(
@@ -212,6 +353,7 @@ class AstAnalyzer:
             signature=signature,
             body=body,
             length=length,
+            had_docstring=docstring.had_docstring,
         )
 
     def handle_elem_docstring(
@@ -235,15 +377,41 @@ class AstAnalyzer:
         ValueError
             If the element did not have a body at all. This should not happen
             for valid functions or classes.
+        ValueError
+            If the indent of the function body is not
+            one level deeper than the definition.
         """
         docstring_info = self.get_docstring_info(elem)
         if docstring_info is None:
             if not elem.body:
                 msg = "Function body was unexpectedly completely empty."
                 raise ValueError(msg)
-            lines = (elem.body[0].lineno, elem.body[0].lineno)
+            body_elem = elem.body[0]
+            # Ideally we would use one line after the end of the actual function
+            # definition. But this does not exist. So we need to use the body.
+            # However that can start at the same line as the function definition.
+            # In that case we cant place the docstring between definition and body.
+            # The col offsets are unlikely to match so try to detect this with a
+            # good error message.
+            if body_elem.col_offset != (elem.col_offset + self.settings.indent):
+                msg = (
+                    "Function body did not start one indentation level"
+                    " deeper than the function body. Can not properly place docstring."
+                )
+                raise ValueError(msg)
+            lineno = body_elem.lineno
+            if isinstance(
+                body_elem, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+            ):
+                lineno -= len(body_elem.decorator_list)
+            lines = (lineno, lineno)
             return DocstringInfo(
-                name=elem.name, docstring="", lines=lines, modifier="", issues=[]
+                name=elem.name,
+                docstring="",
+                lines=lines,
+                modifier="",
+                issues=[],
+                had_docstring=False,
             )
         return docstring_info
 
@@ -296,6 +464,7 @@ class AstAnalyzer:
                 lines=(docnode.lineno, docnode.end_lineno),
                 modifier=modifier,
                 issues=[],
+                had_docstring=True,
             )
         return None
 
@@ -332,9 +501,10 @@ class AstAnalyzer:
             Starting line (starts at 1) of the docstring.
         """
         shebang_encoding_lines = 2
-        for index, line in enumerate(
-            self.file_content.splitlines()[:shebang_encoding_lines]
-        ):
+        lines_of_interest = self.file_content.splitlines()[:shebang_encoding_lines]
+        if not lines_of_interest:
+            return 1
+        for index, line in enumerate(lines_of_interest):
             if not self.is_shebang_or_pragma(line):
                 # List indices start at 0 but file lines are counted from 1
                 return index + 1
@@ -486,48 +656,13 @@ class AstAnalyzer:
         FunctionBody
             Information extracted from the function body.
         """
-        returns: set[tuple[str, ...]] = set()
-        returns_value = False
-        yields: set[tuple[str, ...]] = set()
-        yields_value = False
-        raises: list[str] = []
-        for node in ast.walk(func):
-            if isinstance(node, ast.Return) and node.value is not None:
-                returns_value = True
-                if isinstance(node.value, ast.Tuple) and all(
-                    isinstance(value, ast.Name) for value in node.value.elts
-                ):
-                    returns.add(self._get_ids_from_returns(node.value.elts))
-            elif isinstance(node, (ast.Yield, ast.YieldFrom)):
-                yields_value = True
-                if (
-                    isinstance(node, ast.Yield)
-                    and isinstance(node.value, ast.Tuple)
-                    and all(isinstance(value, ast.Name) for value in node.value.elts)
-                ):
-                    yields.add(self._get_ids_from_returns(node.value.elts))
-            elif isinstance(node, ast.Raise):
-                pascal_case_regex = r"^(?:[A-Z][a-z]+)+$"
-                if not node.exc:
-                    raises.append(DEFAULT_EXCEPTION)
-                elif isinstance(node.exc, ast.Name) and re.match(
-                    pascal_case_regex, node.exc.id
-                ):
-                    raises.append(node.exc.id)
-                elif (
-                    isinstance(node.exc, ast.Call)
-                    and isinstance(node.exc.func, ast.Name)
-                    and re.match(pascal_case_regex, node.exc.func.id)
-                ):
-                    raises.append(node.exc.func.id)
-                else:
-                    raises.append(DEFAULT_EXCEPTION)
+        visitor = FunctionNodeVisitor(func)
         return FunctionBody(
-            returns_value=returns_value,
-            returns=returns,
-            yields_value=yields_value,
-            yields=yields,
-            raises=raises,
+            returns_value=visitor.returns_value,
+            returns=visitor.returns,
+            yields_value=visitor.yields_value,
+            yields=visitor.yields,
+            raises=visitor.raises,
         )
 
     def get_return_value_sig(
@@ -779,7 +914,8 @@ class AstAnalyzer:
             arguments.args = [arg for arg in arguments.args if arg.arg != "self"]
         return f"{func.name}({ast.unparse(arguments)})"
 
-    def _get_ids_from_returns(self, values: list[ast.expr]) -> tuple[str, ...]:
+    @staticmethod
+    def get_ids_from_returns(values: list[ast.expr]) -> tuple[str, ...]:
         """Get the ids/names for all the expressions in the list.
 
         Parameters

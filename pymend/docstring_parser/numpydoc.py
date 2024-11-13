@@ -24,6 +24,7 @@ from .common import (
     DocstringReturns,
     DocstringStyle,
     DocstringYields,
+    KeyReturnDict,
     MainSections,
     ParseError,
     RenderingStyle,
@@ -548,6 +549,8 @@ class NumpydocParser:
             Recognized sections or None to defaults.
         """
         self.sections = {s.title: s for s in (sections or DEFAULT_SECTIONS)}
+        # Maps section keys to the actually used titles.
+        self.section_titles: dict[str, str] = {}
         self._setup()
 
     def _setup(self) -> None:
@@ -568,6 +571,27 @@ class NumpydocParser:
         self.sections[section.title] = section
         self._setup()
 
+    def canonical_titles(self) -> KeyReturnDict[str, str]:
+        """Get the canonical title for a section key.
+
+        Parameters
+        ----------
+        title : str
+            Section key.
+
+        Returns
+        -------
+        KeyReturnDict[str, str]
+            Canonical title.
+        """
+        return KeyReturnDict(
+            {
+                title: self.section_titles[key]
+                for title in self.sections
+                if (key := self.sections[title].key) in self.section_titles
+            }
+        )
+
     def parse(self, text: Optional[str]) -> Docstring:
         """Parse the numpy-style docstring into its components.
 
@@ -580,6 +604,11 @@ class NumpydocParser:
         -------
         Docstring
             parsed docstring
+
+        Raises
+        ------
+        ParseError
+            If multiple titles are found for the same section.
         """
         ret = Docstring(style=DocstringStyle.NUMPYDOC)
         if not text:
@@ -601,6 +630,14 @@ class NumpydocParser:
         for match, nextmatch in _pairwise(self.titles_re.finditer(meta_chunk)):
             title = next(g for g in match.groups() if g is not None)
             factory = self.sections[title]
+            key = factory.key
+            if key in self.section_titles:
+                msg = (
+                    "Duplicated titles for identical section:"
+                    f" {title} and {self.section_titles[key]}"
+                )
+                raise ParseError(msg)
+            self.section_titles[factory.key] = title
 
             # section chunk starts after the header,
             # ends at the start of the next header
@@ -608,6 +645,7 @@ class NumpydocParser:
             end = nextmatch.start() if nextmatch is not None else None
             ret.meta.extend(factory.parse(meta_chunk[start:end]))
 
+        ret.section_titles = self.canonical_titles()
         return ret
 
 
@@ -681,6 +719,11 @@ def compose(  # noqa: PLR0915, PLR0912
     str
         docstring text
     """
+    titles: KeyReturnDict[str, str] = (
+        docstring.section_titles
+        if docstring.style == DocstringStyle.NUMPYDOC
+        else KeyReturnDict()
+    )
 
     def process_one(one: MainSections) -> None:
         """Build the output text for one entry in a section.
@@ -725,6 +768,7 @@ def compose(  # noqa: PLR0915, PLR0912
         args : list[MainSections]
             List of individual elements of that section.
         """
+        name = titles[name]
         if args:
             parts.append(name)
             parts.append("-" * len(name))
@@ -781,7 +825,7 @@ def compose(  # noqa: PLR0915, PLR0912
 
     if docstring.returns and not docstring.many_returns:
         ret = docstring.returns
-        parts.append("Yields" if ret else "Returns")
+        parts.append(titles["Yields" if ret else "Returns"])
         parts.append("-" * len(parts[-1]))
         process_one(ret)
 
@@ -820,9 +864,9 @@ def compose(  # noqa: PLR0915, PLR0912
             ),
         ):
             continue  # Already handled
-
-        parts.append(meta.args[0].replace("_", "").title())
-        parts.append("-" * len(meta.args[0]))
+        title = titles[meta.args[0].replace("_", "").title()]
+        parts.append(title)
+        parts.append("-" * len(title))
 
         if meta.description:
             parts.append(meta.description)

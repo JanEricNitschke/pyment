@@ -884,15 +884,10 @@ def test_examples() -> None:
         Short description
         Example:
             example: 1
-        Examples:
-            long example
-
-            more here
         """
     )
-    assert len(docstring.examples) == 2
+    assert len(docstring.examples) == 1
     assert docstring.examples[0].description == "example: 1"
-    assert docstring.examples[1].description == "long example\n\nmore here"
 
 
 def test_broken_meta() -> None:

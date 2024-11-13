@@ -460,6 +460,9 @@ def read_pyproject_toml(
     help="Whether to force the arguments section to specify type information.",
 )
 @click.option(
+    "--indent", type=int, default=4, help="Number of characters used for indentation."
+)
+@click.option(
     "-q",
     "--quiet",
     is_flag=True,
@@ -532,6 +535,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     force_defaults: bool,
     force_return_type: bool,
     force_arg_types: bool,
+    indent: int,
     quiet: bool,
     verbose: bool,
     src: tuple[str, ...],
@@ -574,6 +578,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         force_defaults=force_defaults,
         force_return_type=force_return_type,
         force_arg_types=force_arg_types,
+        indent=indent,
     )
 
     run(
