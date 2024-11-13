@@ -11,7 +11,15 @@ from typing_extensions import TypeAlias, override
 
 import pymend.docstring_parser as dsp
 
-from .const import DEFAULT_DESCRIPTION, DEFAULT_EXCEPTION, DEFAULT_SUMMARY, DEFAULT_TYPE
+from .const import (
+    ARG_TYPE_SET,
+    ATTRIBUTE_TYPE_SET,
+    DEFAULT_DESCRIPTION,
+    DEFAULT_EXCEPTION,
+    DEFAULT_SUMMARY,
+    DEFAULT_TYPE,
+    RETURN_TYPE_SET,
+)
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2023-2024"
@@ -24,6 +32,7 @@ __maintainer__ = "J-E. Nitschke"
 class FixerSettings:  # pylint: disable=too-many-instance-attributes
     """Settings to influence which sections are required and when."""
 
+    force_docstrings: bool = True
     force_params: bool = True
     force_return: bool = True
     force_raises: bool = True
@@ -39,6 +48,7 @@ class FixerSettings:  # pylint: disable=too-many-instance-attributes
     force_defaults: bool = True
     force_return_type: bool = True
     force_arg_types: bool = True
+    force_attribute_types: bool = True
     indent: int = 4
 
 
@@ -89,9 +99,11 @@ class DocstringInfo:
         except Exception as e:
             msg = f"Failed to parse docstring for `{self.name}` with error: `{e}`"
             raise AssertionError(msg) from e
-        self._fix_docstring(parsed, settings)
-        self._fix_blank_lines(parsed)
-        return dsp.compose(parsed, style=output_style)
+        if settings.force_docstrings or self.docstring:
+            self._fix_docstring(parsed, settings)
+            self._fix_blank_lines(parsed)
+            return dsp.compose(parsed, style=output_style)
+        return ""
 
     def report_issues(self) -> tuple[int, str]:
         """Report all issues that were found in this docstring.
@@ -112,9 +124,7 @@ class DocstringInfo:
             self.issues.append("Unescaped triple quotes found.")
             self.docstring = self.docstring.replace('"""', r"\"\"\"")
 
-    def _fix_docstring(
-        self, docstring: dsp.Docstring, _settings: FixerSettings
-    ) -> None:
+    def _fix_docstring(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """Fix docstrings.
 
         Default are to add missing dots, blank lines and give defaults for
@@ -130,7 +140,7 @@ class DocstringInfo:
         self._fix_backslashes()
         self._fix_short_description(docstring)
         self._fix_descriptions(docstring)
-        self._fix_types(docstring)
+        self._fix_types(docstring, settings)
 
     def _fix_backslashes(self) -> None:
         """If there is any backslash in the docstring set it as raw."""
@@ -207,7 +217,7 @@ class DocstringInfo:
                 )
             ele.description = ele.description or DEFAULT_DESCRIPTION
 
-    def _fix_types(self, docstring: dsp.Docstring) -> None:
+    def _fix_types(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """Set empty types for parameters and returns.
 
         Parameters
@@ -215,21 +225,40 @@ class DocstringInfo:
         docstring : dsp.Docstring
             Docstring whose type information needs fixing
         """
+        if isinstance(self, FunctionDocstring):
+            force_types = settings.force_arg_types
+            msg = ARG_TYPE_SET
+        elif isinstance(self, ClassDocstring):
+            force_types = settings.force_attribute_types
+            msg = ATTRIBUTE_TYPE_SET
+        else:
+            force_types = True
+            msg = ""
         for param in docstring.params:
             if param.args[0] == "method":
                 continue
-            if not param.type_name or param.type_name == DEFAULT_TYPE:
+            if (not param.type_name or param.type_name == DEFAULT_TYPE) and force_types:
                 self.issues.append(f"{param.arg_name}: Missing or default type name.")
-            param.type_name = param.type_name or DEFAULT_TYPE
+            elif param.type_name and not force_types:
+                self.issues.append(f"{param.arg_name}: {msg}")
+            param.type_name = (param.type_name or DEFAULT_TYPE) if force_types else None
         for returned in docstring.many_returns:
-            if not returned.type_name or returned.type_name == DEFAULT_TYPE:
+            if (
+                not returned.type_name or returned.type_name == DEFAULT_TYPE
+            ) and settings.force_return_type:
                 self.issues.append(
                     "Missing or default type name for return value: "
                     f" `{returned.return_name} |"
                     f" {returned.type_name} |"
                     f" {returned.description}`."
                 )
-            returned.type_name = returned.type_name or DEFAULT_TYPE
+            elif not settings.force_return_type:
+                self.issues.append(RETURN_TYPE_SET)
+            returned.type_name = (
+                (returned.type_name or DEFAULT_TYPE)
+                if settings.force_return_type
+                else None
+            )
 
 
 @dataclass
@@ -336,7 +365,7 @@ class ClassDocstring(DocstringInfo):
                     args=["attribute", att_sig.arg_name],
                     description=DEFAULT_DESCRIPTION,
                     arg_name=att_sig.arg_name,
-                    type_name=DEFAULT_TYPE,
+                    type_name=DEFAULT_TYPE if settings.force_attribute_types else None,
                     is_optional=False,
                     default=None,
                 )
@@ -486,7 +515,7 @@ class FunctionDocstring(DocstringInfo):
                 if (
                     param_sig.type_name
                     and param_sig.type_name != param_doc.type_name
-                    and settings.force_arg_types
+                    and (settings.force_arg_types or param_doc.type_name)
                 ):
                     self.issues.append(
                         f"{name}: Parameter type was"
@@ -494,10 +523,7 @@ class FunctionDocstring(DocstringInfo):
                         f" has type hint `{param_sig.type_name}`."
                     )
                 elif param_doc.type_name and not settings.force_arg_types:
-                    self.issues.append(
-                        f"{name}: Parameter had type despite "
-                        "`force-arg-types=False` being set."
-                    )
+                    self.issues.append(f"{name}: {ARG_TYPE_SET}")
                 param_doc.type_name = (
                     (param_sig.type_name or param_doc.type_name)
                     if settings.force_arg_types
@@ -586,8 +612,10 @@ class FunctionDocstring(DocstringInfo):
             # there was no docstring at all.
             and (
                 settings.force_return
-                and self.length >= settings.force_meta_min_func_length
-                or not self.docstring
+                and (
+                    self.length >= settings.force_meta_min_func_length
+                    or not self.docstring
+                )
             )
         ):
             self.issues.append("Missing return value.")
@@ -609,17 +637,14 @@ class FunctionDocstring(DocstringInfo):
             if (
                 sig_return
                 and doc_return.type_name != sig_return
-                and settings.force_return_type
+                and (settings.force_return_type or doc_return.type_name)
             ):
                 self.issues.append(
                     f"Return type was `{doc_return.type_name}` but"
                     f" signature has type hint `{sig_return}`."
                 )
             elif doc_return.type_name and not settings.force_return_type:
-                self.issues.append(
-                    "Return type was specified despite "
-                    "`force-return-type=False` being set."
-                )
+                self.issues.append(RETURN_TYPE_SET)
             doc_return.type_name = (
                 (sig_return or doc_return.type_name)
                 if settings.force_return_type
@@ -704,17 +729,14 @@ class FunctionDocstring(DocstringInfo):
             if (
                 sig_return
                 and doc_yields.type_name != sig_return
-                and settings.force_return_type
+                and (settings.force_return_type or doc_yields.type_name)
             ):
                 self.issues.append(
                     f"Yield type was `{doc_yields.type_name}` but"
                     f" signature has type hint `{sig_return}`."
                 )
             elif doc_yields.type_name and not settings.force_return_type:
-                self.issues.append(
-                    "Return type was specified despite "
-                    "`force-return-type=False` being set."
-                )
+                self.issues.append(RETURN_TYPE_SET)
             doc_yields.type_name = (
                 (sig_return or doc_yields.type_name)
                 if settings.force_return_type

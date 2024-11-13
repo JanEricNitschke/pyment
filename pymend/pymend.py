@@ -285,6 +285,8 @@ class PyComment:
             The properly indented docstring, wrapped in triple quotes
             and preceded by the desired modifier.
         """
+        if not docstring:
+            return ""
         split = f"{modifier}{quotes}{docstring}".splitlines()
         # One line docstring get the quotes on the same line
         if len(split) > 1:

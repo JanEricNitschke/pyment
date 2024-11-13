@@ -13,6 +13,7 @@ PARAM_KEYWORDS = {
     "arg",
     "argument",
     "attribute",
+    "generics",
     "key",
     "keyword",
 }
@@ -184,6 +185,22 @@ class Docstring:
         self.meta: list[DocstringMeta] = []
         self.style: Optional[DocstringStyle] = style
         self.section_titles: KeyReturnDict[str, str] = section_titles or KeyReturnDict()
+
+    def __bool__(self) -> bool:
+        """Return True if the docstring has any content.
+
+        Returns
+        -------
+        bool
+            True if the docstring has any content.
+        """
+        return any(
+            (
+                self.short_description,
+                self.long_description,
+                self.meta,
+            )
+        )
 
     @property
     def params(self) -> list[DocstringParam]:

@@ -3,6 +3,7 @@
 import ast
 import re
 import sys
+from collections.abc import Iterator
 from typing import Optional, Union, get_args, overload
 
 from typing_extensions import TypeGuard
@@ -216,6 +217,15 @@ class AstAnalyzer:
         self.file_content = file_content
         self.settings = settings
 
+    @staticmethod
+    def func_decorators(
+        node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+    ) -> Iterator[str]:
+        """Get the names of the decorators of a function node."""
+        for name in node.decorator_list:
+            if isinstance(name, ast.Name):
+                yield name.id
+
     def parse_from_ast(
         self,
     ) -> list[ElementDocstring]:
@@ -253,9 +263,8 @@ class AstAnalyzer:
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 if (
                     any(
-                        name.id in self.settings.ignored_decorators
-                        for name in node.decorator_list
-                        if isinstance(name, ast.Name)
+                        name in self.settings.ignored_decorators
+                        for name in self.func_decorators(node)
                     )
                     or node.name in self.settings.ignored_functions
                 ):
@@ -602,11 +611,7 @@ class AstAnalyzer:
             if self.settings.ignore_privates and node.name.startswith("_"):
                 continue
             # Handle properties as attributes
-            if "property" in {
-                decorator.id
-                for decorator in node.decorator_list
-                if isinstance(decorator, ast.Name)
-            }:
+            if "property" in self.func_decorators(node):
                 return_value = self.get_return_value_sig(node)
                 attributes.append(Parameter(node.name, return_value.type_name, None))
             # Handle normal methods except for those with some specific decorators
@@ -635,7 +640,13 @@ class AstAnalyzer:
             Information extracted from the function signature
         """
         parameters = self.get_parameters_sig(func)
-        if parameters and parameters[0].arg_name == "self":
+        if parameters and (
+            parameters[0].arg_name == "self"
+            or (
+                parameters[0].arg_name == "cls"
+                and "classmethod" in self.func_decorators(func)
+            )
+        ):
             parameters.pop(0)
         return_value = self.get_return_value_sig(func)
         return FunctionSignature(parameters, return_value)
