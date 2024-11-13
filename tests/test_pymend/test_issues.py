@@ -32,7 +32,7 @@ class TestIssues:
     def test_issue_30(self) -> None:
         """Test issue 30.
 
-        https://github.com/dadadel/pymend/issues/30
+        https://github.com/dadadel/pyment/issues/30
         """
         # if file starting with a function/class definition, patching the file
         # will remove the first line!
@@ -47,7 +47,7 @@ class TestIssues:
     def test_issue_49(self) -> None:
         """Test issue 49.
 
-        https://github.com/dadadel/pymend/issues/49
+        https://github.com/dadadel/pyment/issues/49
         """
         # Title: If already numpydoc format, will remove the Raises section
         # If the last section in a numpydoc docstring is a `Raises` section,

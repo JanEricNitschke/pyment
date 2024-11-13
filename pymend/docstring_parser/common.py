@@ -1,8 +1,9 @@
 """Common methods for parsing."""
 
 import enum
+from collections import UserDict
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, TypeVar, Union
 
 from typing_extensions import TypeAlias
 
@@ -138,12 +139,36 @@ class DocstringExample(DocstringMeta):
     snippet: Optional[str]
 
 
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+class KeyReturnDict(UserDict[K, V]):
+    """Custom dict that returns the key back in missing case."""
+
+    def __missing__(self, key: K) -> K:
+        """Return the key.
+
+        Parameters
+        ----------
+        key : K
+            key to look for.
+
+        Returns
+        -------
+        K
+            Returns the key directly.
+        """
+        return key
+
+
 class Docstring:
     """Docstring object representation."""
 
     def __init__(
         self,
         style: Optional[DocstringStyle] = None,
+        section_titles: Optional[KeyReturnDict[str, str]] = None,
     ) -> None:
         """Initialize self.
 
@@ -158,6 +183,7 @@ class Docstring:
         self.blank_after_long_description: bool = False
         self.meta: list[DocstringMeta] = []
         self.style: Optional[DocstringStyle] = style
+        self.section_titles: KeyReturnDict[str, str] = section_titles or KeyReturnDict()
 
     @property
     def params(self) -> list[DocstringParam]:

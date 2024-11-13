@@ -21,6 +21,7 @@ from .common import (
     DocstringReturns,
     DocstringStyle,
     DocstringYields,
+    KeyReturnDict,
     MainSections,
     ParseError,
     RenderingStyle,
@@ -103,8 +104,31 @@ class GoogleParser:
         if not sections:
             sections = DEFAULT_SECTIONS
         self.sections = {s.title: s for s in sections}
+        # Maps section keys to the actually used titles.
+        self.section_titles: dict[str, str] = {}
         self.title_colon = title_colon
         self._setup()
+
+    def canonical_titles(self) -> KeyReturnDict[str, str]:
+        """Get the canonical title for a section key.
+
+        Parameters
+        ----------
+        title : str
+            Section key.
+
+        Returns
+        -------
+        KeyReturnDict[str, str]
+            Canonical title.
+        """
+        return KeyReturnDict(
+            {
+                title: self.section_titles[key]
+                for title in self.sections
+                if (key := self.sections[title].key) in self.section_titles
+            }
+        )
 
     def _setup(self) -> None:
         """Set up parser with the colon type and title regex."""
@@ -306,6 +330,11 @@ class GoogleParser:
         -------
         Mapping[str, str]
             Mapping between sectrion title and part of the docstring that deals with it.
+
+        Raises
+        ------
+        ParseError
+            If multiple titles are found for the same section.
         """
         chunks: Mapping[str, str] = OrderedDict()
         matches = list(self.titles_re.finditer(meta_chunk))
@@ -319,6 +348,14 @@ class GoogleParser:
             title = matches[j].group(1)
             if title not in self.sections:
                 continue
+            key = self.sections[title].key
+            if key in self.section_titles:
+                msg = (
+                    "Duplicated titles for identical section:"
+                    f" {title} and {self.section_titles[key]}"
+                )
+                raise ParseError(msg)
+            self.section_titles[key] = title
 
             # Clear Any Unknown Meta
             # Ref: https://github.com/rr-/docstring_parser/issues/29
@@ -398,7 +435,10 @@ class GoogleParser:
         # Split based on lines which have exactly that indent
         c_matches = list(re.finditer(rf"^{indent}(?=\S)", chunk, flags=re.MULTILINE))
         if not c_matches:
-            msg = f'No specification for "{title}": "{chunk}"'
+            msg = (
+                f'No specification for "{title}": "{chunk}"'
+                " Maybe check your indentation?"
+            )
             raise ParseError(msg)
         c_splits = [
             (c_cur.end(), c_next.start())
@@ -476,6 +516,7 @@ class GoogleParser:
                         ret.meta.append(self._build_single_meta(section, part))
                 else:
                     ret.meta.extend(metas)
+        ret.section_titles = self.canonical_titles()
         return ret
 
 
@@ -517,6 +558,11 @@ def compose(  # noqa: PLR0915
     str
         docstring text
     """
+    titles: KeyReturnDict[str, str] = (
+        docstring.section_titles
+        if docstring.style == DocstringStyle.GOOGLE
+        else KeyReturnDict()
+    )
 
     def process_one(one: MainSections) -> None:
         """Build the output text for one entry in a section.
@@ -557,7 +603,9 @@ def compose(  # noqa: PLR0915
             parts.append(body)
         elif one.description:
             (first, *rest) = one.description.splitlines()
-            body = f"\n{indent}{indent}".join([f"{head} {first}", *rest])
+            body = f"\n{indent}{indent}".join(
+                [(f"{head} {first}" if head else f"{indent}{first}"), *rest]
+            )
             parts.append(body)
         else:
             parts.append(head)
@@ -572,8 +620,9 @@ def compose(  # noqa: PLR0915
         args : Sequence[MainSections]
             List of individual elements of that section.
         """
+        name = titles[name]
         if args:
-            parts.append(name)
+            parts.append(f"{name}:")
             for arg in args:
                 process_one(arg)
             parts.append("")
@@ -581,25 +630,25 @@ def compose(  # noqa: PLR0915
     parts: list[str] = []
     append_description(docstring, parts)
 
-    process_sect("Args:", [p for p in docstring.params or [] if p.args[0] == "param"])
+    process_sect("Args", [p for p in docstring.params or [] if p.args[0] == "param"])
 
     process_sect(
-        "Attributes:",
+        "Attributes",
         [p for p in docstring.params or [] if p.args[0] == "attribute"],
     )
 
     process_sect(
-        "Returns:",
+        "Returns",
         docstring.many_returns,
     )
 
-    process_sect("Yields:", docstring.many_yields)
+    process_sect("Yields", docstring.many_yields)
 
-    process_sect("Raises:", docstring.raises or [])
+    process_sect("Raises", docstring.raises or [])
 
     if docstring.returns and not docstring.many_returns:
         ret = docstring.returns
-        parts.append("Yields:" if ret else "Returns:")
+        parts.append(f'{titles["Yields" if ret else "Returns"]:}')
         parts.append("-" * len(parts[-1]))
         process_one(ret)
 
@@ -608,7 +657,7 @@ def compose(  # noqa: PLR0915
             meta, (DocstringParam, DocstringReturns, DocstringRaises, DocstringYields)
         ):
             continue  # Already handled
-        parts.append(meta.args[0].replace("_", "").title() + ":")
+        parts.append(f'{titles[meta.args[0].replace("_", "").title()]}:')
         if meta.description:
             lines = [indent + line for line in meta.description.splitlines()]
             parts.append("\n".join(lines))

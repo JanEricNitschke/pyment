@@ -21,7 +21,7 @@ __maintainer__ = "J-E. Nitschke"
 
 
 @dataclass(frozen=True)
-class FixerSettings:
+class FixerSettings:  # pylint: disable=too-many-instance-attributes
     """Settings to influence which sections are required and when."""
 
     force_params: bool = True
@@ -39,6 +39,7 @@ class FixerSettings:
     force_defaults: bool = True
     force_return_type: bool = True
     force_arg_types: bool = True
+    indent: int = 4
 
 
 @dataclass
@@ -50,6 +51,7 @@ class DocstringInfo:
     lines: tuple[int, Optional[int]]
     modifier: str
     issues: list[str]
+    had_docstring: bool
 
     def output_docstring(
         self,
@@ -536,7 +538,9 @@ class FunctionDocstring(DocstringInfo):
                         args=["param", name],
                         description=place_holder_description,
                         arg_name=name,
-                        type_name=param_sig.type_name or DEFAULT_TYPE,
+                        type_name=(param_sig.type_name or DEFAULT_TYPE)
+                        if settings.force_arg_types
+                        else None,
                         is_optional=False,
                         default=param_sig.default,
                     )
@@ -636,11 +640,16 @@ class FunctionDocstring(DocstringInfo):
                         dsp.DocstringReturns(
                             args=["returns"],
                             description=DEFAULT_DESCRIPTION,
-                            type_name=DEFAULT_TYPE,
+                            type_name=DEFAULT_TYPE
+                            if settings.force_return_type
+                            else None,
                             is_generator=False,
                             return_name=body_name,
                         )
                     )
+        elif not settings.force_return_type:
+            for doc_return in doc_returns:
+                doc_return.type_name = None
 
     def _adjust_yields(self, docstring: dsp.Docstring, settings: FixerSettings) -> None:
         """See _adjust_returns.
@@ -660,7 +669,7 @@ class FunctionDocstring(DocstringInfo):
         # Extract actual return type from Iterators and Generators.
         if sig_return and (
             matches := (
-                re.match(r"(?:Iterable|Iterator)\[([^\]]+)\]", sig_return)
+                re.match(r"(?:Iterable|Iterator)\[(.+)\]", sig_return)
                 or re.match(r"Generator\[(\w+), (\w+), (\w+)\]", sig_return)
             )
         ):
@@ -669,25 +678,48 @@ class FunctionDocstring(DocstringInfo):
             sig_return = None
         # If only one return value is specified take the type from the signature
         # as that is more likely to be correct
-        if not doc_yields and self.body.yields_value and settings.force_return:
+        if (
+            not doc_yields
+            and self.body.yields_value
+            and (
+                settings.force_return
+                and self.length >= settings.force_meta_min_func_length
+                or not self.docstring
+            )
+        ):
             self.issues.append("Missing yielded value.")
             docstring.meta.append(
                 dsp.DocstringYields(
                     args=["yields"],
                     description=DEFAULT_DESCRIPTION,
-                    type_name=sig_return or DEFAULT_TYPE,
+                    type_name=(sig_return or DEFAULT_TYPE)
+                    if settings.force_return_type
+                    else None,
                     is_generator=True,
                     yield_name=None,
                 )
             )
         elif len(doc_yields) == 1:
             doc_yields = doc_yields[0]
-            if sig_return and doc_yields.type_name != sig_return:
+            if (
+                sig_return
+                and doc_yields.type_name != sig_return
+                and settings.force_return_type
+            ):
                 self.issues.append(
                     f"Yield type was `{doc_yields.type_name}` but"
                     f" signature has type hint `{sig_return}`."
                 )
-            doc_yields.type_name = sig_return or doc_yields.type_name
+            elif doc_yields.type_name and not settings.force_return_type:
+                self.issues.append(
+                    "Return type was specified despite "
+                    "`force-return-type=False` being set."
+                )
+            doc_yields.type_name = (
+                (sig_return or doc_yields.type_name)
+                if settings.force_return_type
+                else None
+            )
         elif len(doc_yields) > 1 and len(self.body.yields) == 1:
             doc_names = {yielded.yield_name for yielded in doc_yields}
             for body_name in next(iter(self.body.yields)):
@@ -699,7 +731,9 @@ class FunctionDocstring(DocstringInfo):
                         dsp.DocstringYields(
                             args=["yields"],
                             description=DEFAULT_DESCRIPTION,
-                            type_name=DEFAULT_TYPE,
+                            type_name=DEFAULT_TYPE
+                            if settings.force_return_type
+                            else None,
                             is_generator=True,
                             yield_name=body_name,
                         )

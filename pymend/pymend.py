@@ -127,8 +127,8 @@ class PyComment:
         self._output.lines = "".join(list_to)
         self._changed = list_changed
 
-        self.assert_stability(list_from, list_to)
         self.assert_equality(self._input.lines, self._output.lines)
+        self.assert_stability(list_from, list_to)
         self.fixed = True
         return list_from, list_to, list_changed
 
@@ -151,7 +151,8 @@ class PyComment:
         ValueError
             If the endline of a docstring was parsed as None.
         """
-        list_from = self._input.lst
+        # Handle case of empty file here.
+        list_from = self._input.lst or [""]
         list_to: list[str] = []
         list_changed: list[str] = []
         last = 0
@@ -189,7 +190,9 @@ class PyComment:
             # already have raised an error earlier.
             old_line = list_from[start]
             leading_whitespace = old_line[: -len(old_line.lstrip())]
-            trailing_comment = self._get_trailing_comment(list_from[end])
+            trailing_comment = (
+                self._get_trailing_comment(list_from[end]) if e.had_docstring else ""
+            )
             out_docstring = self._finalizes(
                 docstring=e.output_docstring(
                     output_style=self.style.output_style,
@@ -596,9 +599,21 @@ class PyComment:
         """
         # Change this if pathlib ever gets a `append_suffix` method
         # To Path(self.input_file).append_suffix(".patch")
-        with Path(f"{Path(self.input_file).name}.patch").open(
-            "w", encoding="utf-8"
-        ) as file:
+        file_path = Path(self.input_file)
+        base_name = file_path.name
+        patch_name = f"{base_name}.patch"
+        patch_path = Path(patch_name)
+        directory_parts = file_path.parent.parts
+        length = len(directory_parts)
+        index = 1
+        while patch_path.exists() and index <= length:
+            patch_name = "_".join(
+                [*directory_parts[length - index :], f"{base_name}.patch"]
+            )
+            patch_path = Path(patch_name)
+            index += 1
+
+        with patch_path.open("w", encoding="utf-8") as file:
             file.writelines(lines_to_write)
 
     def _overwrite_source_file(self) -> None:
