@@ -21,6 +21,7 @@ with pyright| |pre-commit|
 |Supports Python310|
 |Supports Python311|
 |Supports Python312|
+|Supports Python313|
 
 
 .. **Code Coverage**
@@ -362,3 +363,5 @@ is more or less taken directly from `black <https://github.com/psf/black/>`__.
    :target: https://www.python.org/downloads/release/python-3110/
 .. |Supports Python312| image:: https://img.shields.io/badge/python-3.12-blue.svg
    :target: https://www.python.org/downloads/release/python-3120/
+.. |Supports Python313| image:: https://img.shields.io/badge/python-3.13-blue.svg
+   :target: https://www.python.org/downloads/release/python-3130/
