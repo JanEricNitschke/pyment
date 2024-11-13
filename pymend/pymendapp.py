@@ -331,6 +331,15 @@ def read_pyproject_toml(
     ),
 )
 @click.option(
+    "--force-docstrings/--unforce-docstrings",
+    is_flag=True,
+    default=True,
+    help=(
+        "Whether to force a docstring even if there is none present."
+        " If set to `False`, will only fix existing docstrings."
+    ),
+)
+@click.option(
     "--force-params/--unforce-params",
     type=bool,
     is_flag=True,
@@ -355,9 +364,9 @@ def read_pyproject_toml(
     type=int,
     default=0,
     help="Minimum number statements in the function body"
-    " to actually enforce parameters."
+    " to actually enforce parameters and returns."
     " If less than the specified numbers of statements are"
-    " detected then a parameters section is only build for new docstrings."
+    " detected then a parameters and return section is only build for new docstrings."
     " No new sections are created for existing docstrings and existing sections"
     " are not extended. Only has an effect with"
     " `--force-params` or `--force-return` set to true.",
@@ -389,7 +398,7 @@ def read_pyproject_toml(
     default=False,
     help="Whether to force a methods section for classes even if"
     " there is already an existing docstring."
-    " If set it will force on entry in the section per method found."
+    " If set it will force one entry in the section per method found."
     " If only some methods are desired to be specified then this should be left off.",
 )
 @click.option(
@@ -460,6 +469,12 @@ def read_pyproject_toml(
     help="Whether to force the arguments section to specify type information.",
 )
 @click.option(
+    "--force-attribute-types/--unforce-attribute-types",
+    is_flag=True,
+    default=True,
+    help="Whether to force the attributes section to specify type information.",
+)
+@click.option(
     "--indent", type=int, default=4, help="Number of characters used for indentation."
 )
 @click.option(
@@ -520,6 +535,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     check: bool,
     exclude: Optional[Pattern[str]],
     extend_exclude: Optional[Pattern[str]],
+    force_docstrings: bool,
     force_params: bool,
     force_params_min_n_params: bool,
     force_meta_min_func_length: bool,
@@ -535,6 +551,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
     force_defaults: bool,
     force_return_type: bool,
     force_arg_types: bool,
+    force_attribute_types: bool,
     indent: int,
     quiet: bool,
     verbose: bool,
@@ -563,6 +580,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
 
     report = Report(check=check, diff=not write, quiet=quiet, verbose=verbose)
     fixer_settings = FixerSettings(
+        force_docstrings=force_docstrings,
         force_params=force_params,
         force_return=force_return,
         force_raises=force_raises,
@@ -578,6 +596,7 @@ def main(  # pylint: disable=too-many-arguments, too-many-locals  # noqa: PLR091
         force_defaults=force_defaults,
         force_return_type=force_return_type,
         force_arg_types=force_arg_types,
+        force_attribute_types=force_attribute_types,
         indent=indent,
     )
 

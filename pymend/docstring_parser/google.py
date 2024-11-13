@@ -79,6 +79,7 @@ DEFAULT_SECTIONS = [
     Section("Exceptions", "raises", SectionType.MULTIPLE),
     Section("Except", "raises", SectionType.MULTIPLE),
     Section("Attributes", "attribute", SectionType.MULTIPLE),
+    Section("Generics", "generics", SectionType.MULTIPLE),
     Section("Example", "examples", SectionType.SINGULAR),
     Section("Examples", "examples", SectionType.SINGULAR),
     Section("Returns", "returns", SectionType.SINGULAR_OR_MULTIPLE),
@@ -638,6 +639,11 @@ def compose(  # noqa: PLR0915
     )
 
     process_sect(
+        "Generics",
+        [p for p in docstring.params or [] if p.args[0] == "generics"],
+    )
+
+    process_sect(
         "Returns",
         docstring.many_returns,
     )
@@ -659,7 +665,7 @@ def compose(  # noqa: PLR0915
             continue  # Already handled
         parts.append(f'{titles[meta.args[0].replace("_", "").title()]}:')
         if meta.description:
-            lines = [indent + line for line in meta.description.splitlines()]
+            lines = [(indent + line).rstrip() for line in meta.description.splitlines()]
             parts.append("\n".join(lines))
         parts.append("")
 
