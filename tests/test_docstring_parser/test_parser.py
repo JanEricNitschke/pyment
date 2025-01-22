@@ -208,7 +208,7 @@ def test_autodetection_error_detection() -> None:
 def test_autodetection_error() -> None:
     """Test autodetection.
 
-    Case where all available parsers fail.f
+    Case where all available parsers fail.
     """
     source = """
     Does something useless
