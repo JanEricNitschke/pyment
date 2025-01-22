@@ -74,7 +74,7 @@ class FunctionNodeVisitor:  # pylint: disable=too-few-public-methods
         start_node : Union[ast.FunctionDef, ast.AsyncFunctionDef]
             Node to start traversal from.
         """
-        self.name = start_node.name
+        self.start_node = start_node
         self.returns: set[tuple[str, ...]] = set()
         self.returns_value = False
         self.yields: set[tuple[str, ...]] = set()
@@ -108,10 +108,9 @@ class FunctionNodeVisitor:  # pylint: disable=too-few-public-methods
         node : ast.FunctionDef
             Current node in the traversal.
         """
-        nested_function = self._inside_nested_function
-        self._inside_nested_function += int(nested_function)
+        self._inside_nested_function += 0 if node is self.start_node else 1
         self._generic_visit(node)
-        self._inside_nested_function -= int(nested_function)
+        self._inside_nested_function -= 0 if node is self.start_node else 1
 
     def _visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:  # noqa: N802  # pylint: disable=invalid-name
         """Keep track of nested function depth.
@@ -121,10 +120,9 @@ class FunctionNodeVisitor:  # pylint: disable=too-few-public-methods
         node : ast.AsyncFunctionDef
             Current node in the traversal.
         """
-        nested_function = self._inside_nested_function
-        self._inside_nested_function += int(nested_function)
+        self._inside_nested_function += 0 if node is self.start_node else 1
         self._generic_visit(node)
-        self._inside_nested_function -= int(nested_function)
+        self._inside_nested_function -= 0 if node is self.start_node else 1
 
     def _visit_Return(self, node: ast.Return) -> None:  # noqa: N802  # pylint: disable=invalid-name
         """Do not process returns from nested functions.
