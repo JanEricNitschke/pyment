@@ -563,9 +563,11 @@ class FunctionDocstring(DocstringInfo):
                         args=["param", name],
                         description=place_holder_description,
                         arg_name=name,
-                        type_name=(param_sig.type_name or DEFAULT_TYPE)
-                        if settings.force_arg_types
-                        else None,
+                        type_name=(
+                            (param_sig.type_name or DEFAULT_TYPE)
+                            if settings.force_arg_types
+                            else None
+                        ),
                         is_optional=False,
                         default=param_sig.default,
                     )
@@ -602,19 +604,17 @@ class FunctionDocstring(DocstringInfo):
             matches := (re.match(r"Generator\[(\w+), (\w+), (\w+)\]", sig_return))
         ):
             sig_return = matches[3]
-        # If only one return value is specified take the type from the signature
-        # as that is more likely to be correct
         if (
             not doc_returns
             and self.body.returns_value
             # If we do not want to force returns then only add new ones if
             # there was no docstring at all.
             and (
-                settings.force_return
-                and (
-                    self.length >= settings.force_meta_min_func_length
-                    or not self.docstring
+                (
+                    settings.force_return
+                    and self.length >= settings.force_meta_min_func_length
                 )
+                or not self.docstring
             )
         ):
             self.issues.append("Missing return value.")
@@ -622,9 +622,11 @@ class FunctionDocstring(DocstringInfo):
                 dsp.DocstringReturns(
                     args=["returns"],
                     description=DEFAULT_DESCRIPTION,
-                    type_name=(sig_return or DEFAULT_TYPE)
-                    if settings.force_return_type
-                    else None,
+                    type_name=(
+                        (sig_return or DEFAULT_TYPE)
+                        if settings.force_return_type
+                        else None
+                    ),
                     is_generator=False,
                     return_name=None,
                 )
@@ -664,9 +666,9 @@ class FunctionDocstring(DocstringInfo):
                         dsp.DocstringReturns(
                             args=["returns"],
                             description=DEFAULT_DESCRIPTION,
-                            type_name=DEFAULT_TYPE
-                            if settings.force_return_type
-                            else None,
+                            type_name=(
+                                DEFAULT_TYPE if settings.force_return_type else None
+                            ),
                             is_generator=False,
                             return_name=body_name,
                         )
@@ -718,9 +720,11 @@ class FunctionDocstring(DocstringInfo):
                 dsp.DocstringYields(
                     args=["yields"],
                     description=DEFAULT_DESCRIPTION,
-                    type_name=(sig_return or DEFAULT_TYPE)
-                    if settings.force_return_type
-                    else None,
+                    type_name=(
+                        (sig_return or DEFAULT_TYPE)
+                        if settings.force_return_type
+                        else None
+                    ),
                     is_generator=True,
                     yield_name=None,
                 )
@@ -754,9 +758,9 @@ class FunctionDocstring(DocstringInfo):
                         dsp.DocstringYields(
                             args=["yields"],
                             description=DEFAULT_DESCRIPTION,
-                            type_name=DEFAULT_TYPE
-                            if settings.force_return_type
-                            else None,
+                            type_name=(
+                                DEFAULT_TYPE if settings.force_return_type else None
+                            ),
                             is_generator=True,
                             yield_name=body_name,
                         )
