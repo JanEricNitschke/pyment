@@ -54,7 +54,7 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: pylint pymend
+        entry: pylint src/pymend
         language: system
         types: [python]
         pass_filenames: false
