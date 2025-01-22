@@ -91,7 +91,21 @@
          Some integer
      y : str
          Some string
-@@ -82,5 +103,11 @@
+@@ -82,10 +103,12 @@
+ 
+     Returns
+     -------
+-    x :
++    x : _type_
+         Some integer
+     y : str
+         Some string
++    z : _type_
++        _description_
+     """
+     return x, y, z
+ 
+@@ -94,5 +117,11 @@
      def nested_function1():
          """_summary_."""
          def nested_function2():
