@@ -548,7 +548,7 @@ class FunctionDocstring(DocstringInfo):
                         )
             elif (
                 settings.force_params
-                and len(params_from_doc) >= settings.force_params_min_n_params
+                and len(params_from_sig) >= settings.force_params_min_n_params
                 and self.length >= settings.force_meta_min_func_length
             ) or not self.docstring:
                 self.issues.append(f"Missing parameter `{name}`.")
