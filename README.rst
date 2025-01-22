@@ -76,7 +76,13 @@ Start quickly
    or
    $ git clone https://github.com/JanEricNitschke/pymend.git
    $ cd pymend
-   $ python setup.py install
+   $ pip install .
+   or with uv (https://docs.astral.sh/uv/).
+   $ git clone https://github.com/JanEricNitschke/pymend.git
+   $ cd pymend
+   $ uv sync --all-groups
+   $ uv tool install .
+   in the case of uv you can prefix all commands below with `uv run`.
 
 -  run from the command line:
 
