@@ -1031,11 +1031,7 @@ def test_empty_example() -> None:
             Meta:
                 asd
             """,
-            "Short description\n"
-            "First line\n"
-            "    Second line\n"
-            "Meta:\n"
-            "    asd",
+            "Short description\nFirst line\n    Second line\nMeta:\n    asd",
         ),
         (
             """
@@ -1047,12 +1043,7 @@ def test_empty_example() -> None:
                 asd
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "First line\n"
-            "    Second line\n"
-            "Meta:\n"
-            "    asd",
+            "Short description\n\nFirst line\n    Second line\nMeta:\n    asd",
             # fmt: on
         ),
         (
@@ -1066,13 +1057,7 @@ def test_empty_example() -> None:
                 asd
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "First line\n"
-            "    Second line\n"
-            "\n"
-            "Meta:\n"
-            "    asd",
+            "Short description\n\nFirst line\n    Second line\n\nMeta:\n    asd",
             # fmt: on
         ),
         (
@@ -1086,13 +1071,7 @@ def test_empty_example() -> None:
                     3
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "Meta:\n"
-            "    asd\n"
-            "        1\n"
-            "            2\n"
-            "        3",
+            "Short description\n\nMeta:\n    asd\n        1\n            2\n        3",
             # fmt: on
         ),
         (
@@ -1164,7 +1143,7 @@ def test_empty_example() -> None:
                 int: description
             """,
             # fmt: off
-            "Short description\n" "\n" "Returns:\n" "    int: description",
+            "Short description\n\nReturns:\n    int: description",
             # fmt: on
         ),
         (
@@ -1175,7 +1154,7 @@ def test_empty_example() -> None:
                 int: description
             """,
             # fmt: off
-            "Short description\n" "\n" "Yields:\n" "    int: description",
+            "Short description\n\nYields:\n    int: description",
             # fmt: on
         ),
         (

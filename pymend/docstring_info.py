@@ -116,7 +116,7 @@ class DocstringInfo:
         """
         if not self.issues:
             return 0, ""
-        return len(self.issues), f"{'-'*50}\n{self.name}:\n" + "\n".join(self.issues)
+        return len(self.issues), f"{'-' * 50}\n{self.name}:\n" + "\n".join(self.issues)
 
     def _escape_triple_quotes(self) -> None:
         r"""Escape \"\"\" in the docstring."""
@@ -550,8 +550,7 @@ class FunctionDocstring(DocstringInfo):
                 settings.force_params
                 and len(params_from_doc) >= settings.force_params_min_n_params
                 and self.length >= settings.force_meta_min_func_length
-                or not self.docstring
-            ):
+            ) or not self.docstring:
                 self.issues.append(f"Missing parameter `{name}`.")
                 place_holder_description = DEFAULT_DESCRIPTION
                 if param_sig.default:
@@ -707,8 +706,10 @@ class FunctionDocstring(DocstringInfo):
             not doc_yields
             and self.body.yields_value
             and (
-                settings.force_return
-                and self.length >= settings.force_meta_min_func_length
+                (
+                    settings.force_return
+                    and self.length >= settings.force_meta_min_func_length
+                )
                 or not self.docstring
             )
         ):
@@ -829,7 +830,7 @@ if sys.version_info >= (3, 11):
         ast.TryStar,
     ]
 # Only match, no trystar
-elif sys.version_info == (3, 10):
+elif sys.version_info >= (3, 10) and sys.version_info < (3, 11):
     BodyTypes: TypeAlias = Union[
         ast.Module,
         ast.Interactive,

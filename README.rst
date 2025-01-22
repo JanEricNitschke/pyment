@@ -319,7 +319,7 @@ Acknowledgements
 
 This project was inspired by and is originally based upon
 `pyment <https://github.com/dadadel/pyment/>`__. The intended
-functionality as well as the main entry point remain largerly unchanged.
+functionality as well as the main entry point remain largely unchanged.
 However additional functionality has been added in the form of ast
 traversal for extracting function and class information.
 

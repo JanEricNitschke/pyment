@@ -6,13 +6,13 @@ from inspect import Signature
 from itertools import chain
 from typing import Callable
 
+from .base_parser import compose, parse
 from .common import (
     DocstringMeta,
     DocstringParam,
     DocstringStyle,
     RenderingStyle,
 )
-from .parser import compose, parse
 
 _Func = Callable[..., object]
 
