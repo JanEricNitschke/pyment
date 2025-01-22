@@ -1,8 +1,8 @@
-"""Unit tests for pymend.types."""
+"""Unit tests for pymend.docstring_info."""
 
 import pytest
 
-from pymend.types import Parameter
+from pymend.docstring_info import Parameter
 
 
 class TestParameter:

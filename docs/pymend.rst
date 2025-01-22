@@ -36,10 +36,10 @@ pymend.pymendapp module
    :undoc-members:
    :show-inheritance:
 
-pymend.types module
+pymend.docstring_info module
 -------------------
 
-.. automodule:: pymend.types
+.. automodule:: pymend.docstring_info
    :members:
    :undoc-members:
    :show-inheritance:

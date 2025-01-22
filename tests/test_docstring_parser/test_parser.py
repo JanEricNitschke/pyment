@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from pymend.docstring_parser import parser
+from pymend.docstring_parser import base_parser
+from pymend.docstring_parser.base_parser import compose, parse, rest
 from pymend.docstring_parser.common import Docstring, DocstringStyle, ParseError
-from pymend.docstring_parser.parser import compose, parse, rest
 
 
 def test_rest() -> None:
@@ -208,7 +208,7 @@ def test_autodetection_error_detection() -> None:
 def test_autodetection_error() -> None:
     """Test autodetection.
 
-    Case where all available parsers fail.
+    Case where all available parsers fail.f
     """
     source = """
     Does something useless
@@ -220,10 +220,10 @@ def test_autodetection_error() -> None:
         DocstringStyle.EPYDOC: rest,
     }
     with (
-        patch("pymend.docstring_parser.parser._STYLE_MAP", patched_map),
+        patch("pymend.docstring_parser.base_parser._STYLE_MAP", patched_map),
         pytest.raises(ParseError),
     ):
-        parser.parse(source)
+        base_parser.parse(source)
 
 
 def test_compose_empty_docstring() -> None:

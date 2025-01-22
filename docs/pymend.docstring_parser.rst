@@ -47,7 +47,7 @@ pymend.docstring\_parser.numpydoc module
 pymend.docstring\_parser.parser module
 --------------------------------------
 
-.. automodule:: pymend.docstring_parser.parser
+.. automodule:: pymend.docstring_parser.base_parser
    :members:
    :undoc-members:
    :show-inheritance:

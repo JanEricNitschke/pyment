@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 import pymend.pymend as pym
-from pymend.types import FixerSettings
+from pymend.docstring_info import FixerSettings
 
 CURRENT_DIR = Path(__file__).parent
 
