@@ -77,6 +77,18 @@ def my_multi_return_func() -> Tuple[int, str, bool]:
     """
     pass
 
+def my_multi_return_func() -> Tuple[int, str, bool]:
+    """_summary_.
+
+    Returns
+    -------
+    x :
+        Some integer
+    y : str
+        Some string
+    """
+    return x, y, z
+
 def nested_function():
     """_summary_."""
     def nested_function1():
