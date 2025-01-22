@@ -4,8 +4,13 @@ import ast
 
 import pytest
 
+from pymend.docstring_info import (
+    ClassDocstring,
+    FixerSettings,
+    FunctionDocstring,
+    Parameter,
+)
 from pymend.file_parser import AstAnalyzer
-from pymend.types import ClassDocstring, FixerSettings, FunctionDocstring, Parameter
 
 
 class TestAstAnalyzer:
