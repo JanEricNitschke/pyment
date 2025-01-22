@@ -654,7 +654,7 @@ def compose(  # noqa: PLR0915
 
     if docstring.returns and not docstring.many_returns:
         ret = docstring.returns
-        parts.append(f'{titles["Yields" if ret else "Returns"]:}')
+        parts.append(f"{titles['Yields' if ret else 'Returns']:}")
         parts.append("-" * len(parts[-1]))
         process_one(ret)
 
@@ -663,7 +663,7 @@ def compose(  # noqa: PLR0915
             meta, (DocstringParam, DocstringReturns, DocstringRaises, DocstringYields)
         ):
             continue  # Already handled
-        parts.append(f'{titles[meta.args[0].replace("_", "").title()]}:')
+        parts.append(f"{titles[meta.args[0].replace('_', '').title()]}:")
         if meta.description:
             lines = [(indent + line).rstrip() for line in meta.description.splitlines()]
             parts.append("\n".join(lines))

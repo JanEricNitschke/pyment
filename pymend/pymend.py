@@ -13,10 +13,10 @@ from click import echo
 
 import pymend.docstring_parser as dsp
 
+from .docstring_info import ElementDocstring, FixerSettings
 from .file_parser import AstAnalyzer
 from .output import diff
 from .report import Changed
-from .types import ElementDocstring, FixerSettings
 
 __author__ = "J-E. Nitschke"
 __copyright__ = "Copyright 2012-2021 A. Daouzli"
@@ -565,8 +565,8 @@ class PyComment:
         elif self._input.lines != self._output.lines:
             echo(
                 "Modified docstrings of element"
-                f'{"s" if len(self._changed) > 1 else ""} '
-                f'({", ".join(self._changed)}) in file {self.input_file}.'
+                f"{'s' if len(self._changed) > 1 else ''} "
+                f"({', '.join(self._changed)}) in file {self.input_file}."
             )
             self._overwrite_source_file()
         return Changed.YES if bool(self._changed) else Changed.NO
@@ -671,7 +671,7 @@ class PyComment:
         if not issues:
             return 0, ""
         report = (
-            f"{'*'*50}\nThe following issues were found in file {self.input_file}:\n"
+            f"{'*' * 50}\nThe following issues were found in file {self.input_file}:\n"
             + "\n".join(issues)
         )
         return len(issues), report

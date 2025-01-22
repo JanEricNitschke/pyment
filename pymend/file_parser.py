@@ -9,7 +9,7 @@ from typing import Optional, Union, get_args, overload
 from typing_extensions import TypeGuard
 
 from .const import DEFAULT_EXCEPTION
-from .types import (
+from .docstring_info import (
     BodyTypes,
     ClassDocstring,
     DocstringInfo,

@@ -826,7 +826,7 @@ def test_simple_sections() -> None:
     [
         (
             # fmt: off
-            "Description\n" "Examples\n" "--------\n" ">>> test",
+            "Description\nExamples\n--------\n>>> test",
             # fmt: on
             [
                 (">>> test", ""),
@@ -834,7 +834,7 @@ def test_simple_sections() -> None:
         ),
         (
             # fmt: off
-            "Description\n" "Examples\n" "--------\n" ">>> testa\n" ">>> testb",
+            "Description\nExamples\n--------\n>>> testa\n>>> testb",
             # fmt: on
             [
                 (">>> testa\n>>> testb", ""),
@@ -842,7 +842,7 @@ def test_simple_sections() -> None:
         ),
         (
             # fmt: off
-            "Description\n" "Examples\n" "--------\n" "\n" "desc1\n" "\n" ">>> test1",
+            "Description\nExamples\n--------\n\ndesc1\n\n>>> test1",
             # fmt: on
             [
                 (">>> test1", "desc1"),
@@ -1069,12 +1069,7 @@ def test_deprecation(
             -----
                 asd
             """,
-            "Short description\n"
-            "First line\n"
-            "    Second line\n"
-            "Meta:\n"
-            "-----\n"
-            "    asd",
+            "Short description\nFirst line\n    Second line\nMeta:\n-----\n    asd",
         ),
         (
             """
@@ -1086,13 +1081,7 @@ def test_deprecation(
             -----
                 asd
             """,
-            "Short description\n"
-            "\n"
-            "First line\n"
-            "    Second line\n"
-            "Meta:\n"
-            "-----\n"
-            "    asd",
+            "Short description\n\nFirst line\n    Second line\nMeta:\n-----\n    asd",
         ),
         (
             """
@@ -1105,14 +1094,7 @@ def test_deprecation(
             -----
                 asd
             """,
-            "Short description\n"
-            "\n"
-            "First line\n"
-            "    Second line\n"
-            "\n"
-            "Meta:\n"
-            "-----\n"
-            "    asd",
+            "Short description\n\nFirst line\n    Second line\n\nMeta:\n-----\n    asd",
         ),
         (
             """
@@ -1208,11 +1190,7 @@ def test_deprecation(
                 ValueError
                     description
             """,
-            "Short description\n"
-            "Raises:\n"
-            "-------\n"
-            "    ValueError\n"
-            "        description",
+            "Short description\nRaises:\n-------\n    ValueError\n        description",
         ),
         (
             """Description

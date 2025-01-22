@@ -15,10 +15,10 @@ import pymend.docstring_parser as dsp
 from pymend import PyComment, __version__
 
 from .const import DEFAULT_EXCLUDES
+from .docstring_info import FixerSettings
 from .files import find_pyproject_toml, parse_pyproject_toml
 from .output import out
 from .report import Report
-from .types import FixerSettings
 
 STRING_TO_STYLE = {
     "rest": dsp.DocstringStyle.REST,

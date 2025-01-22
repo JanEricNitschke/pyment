@@ -554,12 +554,7 @@ def test_broken_meta() -> None:
             @meta: asd
             """,
             # fmt: off
-            "Short description\n"
-            "\n"
-            "First line\n"
-            "    Second line\n"
-            "\n"
-            "@meta: asd",
+            "Short description\n\nFirst line\n    Second line\n\n@meta: asd",
             # fmt: on
         ),
         (
@@ -658,7 +653,7 @@ def test_broken_meta() -> None:
             @rtype: int
             """,
             # fmt: off
-            "Short description\n" "@rtype: int\n" "@return: description",
+            "Short description\n@rtype: int\n@return: description",
             # fmt: on
         ),
         (
@@ -668,7 +663,7 @@ def test_broken_meta() -> None:
             @ytype: int
             """,
             # fmt: off
-            "Short description\n" "@ytype: int\n" "@yield: description",
+            "Short description\n@ytype: int\n@yield: description",
             # fmt: on
         ),
     ],
