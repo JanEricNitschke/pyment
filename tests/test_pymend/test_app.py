@@ -297,7 +297,7 @@ class TestApp:
         file_contents : str
             write this into the temporary file
         cmd_args : str
-            Arguments to pymend - do not put the '-w' argument here -
+            Arguments to pymend - do not put the '--write' argument here -
             it is triggered by overwrite_mode (Default value = "")
         overwrite_mode : bool
             set to True if in overwrite mode (Default value = False)

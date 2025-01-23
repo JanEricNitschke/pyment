@@ -89,7 +89,7 @@ Start quickly
 .. code:: sh
 
    $ pymend  myfile.py    # will generate a patch
-   $ pymend -w myfile.py  # will overwrite the file
+   $ pymend --write myfile.py  # will overwrite the file
 
 -  get help:
 
