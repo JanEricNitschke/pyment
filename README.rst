@@ -88,7 +88,7 @@ Start quickly
 
 .. code:: sh
 
-   $ pymend  myfile.py    # will generate a patch
+   $ pymend  myfile.py         # will generate a patch
    $ pymend --write myfile.py  # will overwrite the file
 
 -  get help:
